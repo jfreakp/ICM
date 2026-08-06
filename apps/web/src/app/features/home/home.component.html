@@ -1,0 +1,27 @@
+<div class="min-h-screen bg-gray-50">
+  <header class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <h1 class="text-lg font-bold">Municipio de Loja</h1>
+    <button
+      data-testid="logout-btn"
+      (click)="onLogout()"
+      class="text-sm text-red-600 hover:underline"
+    >
+      Cerrar sesión
+    </button>
+  </header>
+
+  <div class="flex">
+    <nav class="w-56 bg-white border-r min-h-screen p-4">
+      <ul class="space-y-2">
+        <li class="text-gray-400 cursor-not-allowed px-3 py-2 rounded">Admin (próximamente)</li>
+        <li class="text-gray-400 cursor-not-allowed px-3 py-2 rounded">Reportería (próximamente)</li>
+      </ul>
+    </nav>
+
+    <main class="flex-1 p-8">
+      @if (currentUser$ | async; as user) {
+        <p class="text-xl">Bienvenido, <span class="font-semibold">{{ user.full_name }}</span></p>
+      }
+    </main>
+  </div>
+</div>
