@@ -2072,7 +2072,1101 @@ git commit -m "feat(web): add HomeComponent"
 
 ---
 
-### Task 18: Routing, app bootstrap, and end-to-end manual verification
+## Addendum: Sistema de diseño institucional (Tasks 18-24)
+
+> See `docs/superpowers/specs/2026-08-06-institutional-design-addendum.md` for the full design
+> rationale. Summary: the user provided approved mockups in `desing/` (login, dashboard, reportes
+> de multas, administración de usuarios) plus `desing/institutional_authority_system/DESIGN.md`
+> (design tokens) and asked to replicate all 3 authenticated pages now, using static placeholder
+> data — no new backend endpoints, no `axis.*` wiring. This supersedes the plain styling used by
+> Tasks 16-17 (their component *logic* is untouched; only templates change) and renumbers what was
+> "Task 18" to "Task 24".
+
+### Task 18: Institutional design tokens (Tailwind config + fonts)
+
+**Files:**
+- Modify: `apps/web/tailwind.config.js`
+- Modify: `apps/web/src/index.html`
+- Modify: `apps/web/src/styles.css`
+
+**Interfaces:**
+- Produces: Tailwind utility classes (`bg-primary`, `text-on-surface`, `font-display-lg`,
+  `rounded-DEFAULT`, `p-md`, etc.) and a working `.material-symbols-outlined` icon class, available
+  to every component from this task onward.
+
+- [ ] **Step 1: Replace `apps/web/tailwind.config.js` with the institutional design tokens**
+
+Values are taken from `desing/institutional_authority_system/DESIGN.md`'s frontmatter (the
+authoritative source — note the 4 mockup HTML files each embed a *duplicate* Tailwind config with
+a bug: `borderRadius.full` is set to `0.75rem` instead of a true pill/circle radius, which would
+break every `rounded-full` avatar/logo circle in the mockups; DESIGN.md's `rounded.full: 9999px` is
+correct and is what this step uses).
+
+```javascript
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./src/**/*.{html,ts}"],
+  theme: {
+    extend: {
+      colors: {
+        'on-error-container': '#93000a',
+        'tertiary-container': '#4f2e00',
+        'secondary-fixed-dim': '#f8bc4b',
+        'tertiary-fixed': '#ffddba',
+        'on-surface': '#0d1c2e',
+        'secondary-fixed': '#ffdeaa',
+        'primary-fixed-dim': '#adc7f7',
+        surface: '#f8f9ff',
+        primary: '#002045',
+        'inverse-primary': '#adc7f7',
+        'inverse-on-surface': '#eaf1ff',
+        'primary-fixed': '#d6e3ff',
+        'on-secondary-fixed-variant': '#5f4100',
+        'primary-container': '#1a365d',
+        'surface-container-lowest': '#ffffff',
+        'on-background': '#0d1c2e',
+        'on-primary-container': '#86a0cd',
+        'surface-container-high': '#dce9ff',
+        'surface-bright': '#f8f9ff',
+        'tertiary-fixed-dim': '#f2bc82',
+        outline: '#74777f',
+        'on-surface-variant': '#43474e',
+        'on-error': '#ffffff',
+        'surface-dim': '#ccdbf4',
+        'on-secondary-container': '#725000',
+        'inverse-surface': '#223144',
+        'error-container': '#ffdad6',
+        'surface-tint': '#455f88',
+        'on-primary-fixed-variant': '#2d476f',
+        'outline-variant': '#c4c6cf',
+        secondary: '#7d5700',
+        'on-primary': '#ffffff',
+        'on-primary-fixed': '#001b3c',
+        'on-tertiary-fixed': '#2b1700',
+        error: '#ba1a1a',
+        'surface-container': '#e5eeff',
+        'on-secondary': '#ffffff',
+        'on-tertiary-container': '#c6955e',
+        'on-secondary-fixed': '#271900',
+        background: '#f8f9ff',
+        tertiary: '#321b00',
+        'secondary-container': '#ffc250',
+        'on-tertiary': '#ffffff',
+        'surface-container-low': '#eff4ff',
+        'on-tertiary-fixed-variant': '#633f0f',
+        'surface-container-highest': '#d4e4fc',
+        'surface-variant': '#d4e4fc',
+      },
+      borderRadius: {
+        sm: '0.125rem',
+        DEFAULT: '0.25rem',
+        md: '0.375rem',
+        lg: '0.5rem',
+        xl: '0.75rem',
+        full: '9999px',
+      },
+      spacing: {
+        base: '4px',
+        xs: '8px',
+        sm: '16px',
+        md: '24px',
+        lg: '40px',
+        xl: '64px',
+        gutter: '24px',
+        'margin-mobile': '16px',
+        'margin-desktop': '32px',
+      },
+      fontFamily: {
+        'label-caps': ['Inter', 'sans-serif'],
+        'display-lg': ['Inter', 'sans-serif'],
+        'display-lg-mobile': ['Inter', 'sans-serif'],
+        'body-lg': ['Inter', 'sans-serif'],
+        'headline-md': ['Inter', 'sans-serif'],
+        'body-sm': ['Inter', 'sans-serif'],
+      },
+      fontSize: {
+        'label-caps': ['12px', { lineHeight: '1', letterSpacing: '0.05em', fontWeight: '600' }],
+        'display-lg': ['32px', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'display-lg-mobile': ['24px', { lineHeight: '1.2', fontWeight: '700' }],
+        'body-lg': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
+        'headline-md': ['20px', { lineHeight: '1.4', fontWeight: '600' }],
+        'body-sm': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
+      },
+    },
+  },
+  plugins: [],
+};
+```
+
+- [ ] **Step 2: Load Inter and Material Symbols Outlined in `apps/web/src/index.html`**
+
+Replace the full contents of `apps/web/src/index.html` with:
+```html
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>ICM Loja - Sistema de Multas</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+```
+
+- [ ] **Step 3: Add base Inter font and the Material Symbols icon class to `apps/web/src/styles.css`**
+
+Replace the full contents of `apps/web/src/styles.css` with:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+}
+```
+
+(The `.material-symbols-outlined` rule is the standard boilerplate Google's docs specify for this
+icon font — without it, the `<span class="material-symbols-outlined">mail</span>` pattern used
+throughout the upcoming components would render the literal word "mail" instead of an icon glyph.)
+
+- [ ] **Step 4: Verify the build compiles and Inter/institutional tokens are present in the CSS output**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng build --configuration=development 2>&1 | tail -20
+grep -o "002045" dist/web/browser/*.css 2>/dev/null | head -1 || grep -o "002045" .angular/cache/**/*.css 2>/dev/null | head -1
+```
+
+Expected: build succeeds with no errors. The grep confirms the `primary: #002045` color token made
+it into the compiled CSS (exact output path may vary by Angular CLI cache layout — if the grep
+doesn't find the file, it's fine as long as the build itself succeeded; the color will be verified
+visually once Login/Dashboard are restyled in later tasks).
+
+- [ ] **Step 5: Commit**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion
+git add apps/web/tailwind.config.js apps/web/src/index.html apps/web/src/styles.css
+git commit -m "feat(web): add institutional design tokens (colors, typography, icons)"
+```
+
+---
+
+### Task 19: Shared `AppShellComponent` (sidebar + top bar) (TDD)
+
+**Files:**
+- Create: `apps/web/src/app/shared/app-shell/app-shell.component.ts`
+- Create: `apps/web/src/app/shared/app-shell/app-shell.component.html`
+- Create: `apps/web/src/app/shared/app-shell/app-shell.component.spec.ts`
+
+**Interfaces:**
+- Consumes: `AuthService.logout()` (Task 13), Angular `Router`.
+- Produces: standalone `AppShellComponent`, selector `app-shell`. `@Input({ required: true })
+  activeRoute: 'dashboard' | 'reportes' | 'usuarios'` controls which sidebar link is highlighted.
+  Projects page content via `<ng-content>`. Exported type `AppShellRoute`.
+
+Note: the mockups' sidebar header uses an external `<img>` logo and the top bar uses an external
+`<img>` user avatar, both pointing at `googleusercontent.com` URLs generated for the mockup
+preview — those are not ours to embed in a real app. This component replaces both with a plain
+icon inside a circle, which uses the same layout/sizing as the mockup without the external image
+dependency.
+
+- [ ] **Step 1: Write the failing test**
+
+`apps/web/src/app/shared/app-shell/app-shell.component.spec.ts`:
+```typescript
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { vi } from 'vitest';
+import { AppShellComponent } from './app-shell.component';
+import { AuthService } from '../../core/auth.service';
+
+describe('AppShellComponent', () => {
+  let fixture: ComponentFixture<AppShellComponent>;
+  let authService: { logout: ReturnType<typeof vi.fn> };
+  let router: Router;
+
+  beforeEach(async () => {
+    authService = { logout: vi.fn() };
+
+    await TestBed.configureTestingModule({
+      imports: [AppShellComponent],
+      providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
+    }).compileComponents();
+
+    router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    fixture = TestBed.createComponent(AppShellComponent);
+    fixture.componentInstance.activeRoute = 'dashboard';
+    fixture.detectChanges();
+  });
+
+  it('highlights the Dashboard link when activeRoute is dashboard', () => {
+    const dashboardLink: HTMLAnchorElement = fixture.nativeElement.querySelector('a[href="/home"]');
+    expect(dashboardLink.classList.contains('text-secondary-fixed-dim')).toBe(true);
+  });
+
+  it('does not highlight Reportes when activeRoute is dashboard', () => {
+    const reportesLink: HTMLAnchorElement = fixture.nativeElement.querySelector('a[href="/reportes"]');
+    expect(reportesLink.classList.contains('text-secondary-fixed-dim')).toBe(false);
+  });
+
+  it('logs out and navigates to /login when the logout link is clicked', () => {
+    const button: HTMLElement = fixture.nativeElement.querySelector('[data-testid="logout-btn"]');
+    button.click();
+
+    expect(authService.logout).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  });
+});
+```
+
+Note: this uses `provideRouter([])` plus a spy on the *real* `Router.navigate` (not a fully mocked
+`Router` object) because `AppShellComponent`'s template uses the `routerLink` directive, which
+internally calls methods (`createUrlTree`, etc.) that a plain `{ navigate: vi.fn() }` stand-in
+doesn't implement — a fully fake `Router` would throw when Angular tries to compute the `href` for
+each `routerLink`. This pattern (real `Router` + spy) is required for every component in this
+addendum whose template contains `routerLink`.
+
+- [ ] **Step 2: Run to verify it fails**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A5 "AppShellComponent"
+```
+
+Expected: FAIL — `Cannot find module './app-shell.component'`.
+
+- [ ] **Step 3: Write `app-shell.component.ts`**
+
+```bash
+mkdir -p /Users/juanpablotorres/Documents/matriculacion/apps/web/src/app/shared/app-shell
+```
+
+`apps/web/src/app/shared/app-shell/app-shell.component.ts`:
+```typescript
+import { Component, inject, Input } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
+
+export type AppShellRoute = 'dashboard' | 'reportes' | 'usuarios';
+
+const ACTIVE_LINK_CLASS =
+  'flex items-center gap-sm px-md py-sm text-secondary-fixed-dim border-l-4 border-secondary-fixed font-bold transition-colors duration-200';
+const INACTIVE_LINK_CLASS =
+  'flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container transition-colors duration-200';
+
+@Component({
+  selector: 'app-shell',
+  standalone: true,
+  imports: [RouterLink],
+  templateUrl: './app-shell.component.html',
+})
+export class AppShellComponent {
+  @Input({ required: true }) activeRoute!: AppShellRoute;
+
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  navLinkClass(route: AppShellRoute): string {
+    return route === this.activeRoute ? ACTIVE_LINK_CLASS : INACTIVE_LINK_CLASS;
+  }
+
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+}
+```
+
+- [ ] **Step 4: Write `app-shell.component.html`**
+
+`apps/web/src/app/shared/app-shell/app-shell.component.html`:
+```html
+<div class="min-h-screen bg-surface">
+  <nav class="hidden md:flex fixed left-0 top-0 h-full z-40 flex-col justify-between bg-primary w-[280px] border-r border-outline-variant">
+    <div>
+      <div class="p-md flex items-center gap-sm border-b border-outline-variant/20">
+        <div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-primary">account_balance</span>
+        </div>
+        <div>
+          <h1 class="font-display-lg text-display-lg text-on-primary">ICM Loja</h1>
+          <p class="font-body-sm text-body-sm text-on-primary/70">Sistema de Multas</p>
+        </div>
+      </div>
+      <ul class="mt-md flex flex-col gap-xs">
+        <li>
+          <a routerLink="/home" [class]="navLinkClass('dashboard')">
+            <span class="material-symbols-outlined text-[20px]">dashboard</span>
+            <span class="font-body-sm text-body-sm">Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/reportes" [class]="navLinkClass('reportes')">
+            <span class="material-symbols-outlined text-[20px]">assessment</span>
+            <span class="font-body-sm text-body-sm">Reportes</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/usuarios" [class]="navLinkClass('usuarios')">
+            <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+            <span class="font-body-sm text-body-sm">Administración de Usuarios</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="p-md border-t border-outline-variant/20">
+      <a
+        data-testid="logout-btn"
+        (click)="onLogout()"
+        class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container transition-colors duration-200 rounded-DEFAULT cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[20px]">logout</span>
+        <span class="font-body-sm text-body-sm">Cerrar Sesión</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="md:ml-[280px] flex flex-col min-h-screen">
+    <header class="flex justify-between items-center h-16 px-gutter bg-surface border-b border-outline-variant w-full sticky top-0 z-30">
+      <h2 class="font-headline-md text-headline-md text-primary font-bold">Sistema de Reportes de Multas</h2>
+      <button class="text-on-surface-variant hover:text-primary cursor-pointer opacity-90 hover:opacity-100 transition-opacity">
+        <span class="material-symbols-outlined text-[24px]">notifications</span>
+      </button>
+    </header>
+
+    <main class="flex-1 p-margin-mobile md:p-margin-desktop bg-surface">
+      <div class="max-w-[1280px] mx-auto">
+        <ng-content></ng-content>
+      </div>
+    </main>
+  </div>
+</div>
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A5 "AppShellComponent"
+```
+
+Expected: 3 specs, 0 failures.
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion
+git add apps/web/src/app/shared/app-shell
+git commit -m "feat(web): add shared AppShellComponent (sidebar + top bar)"
+```
+
+---
+
+### Task 20: Restyle `LoginComponent` to the institutional design
+
+**Files:**
+- Modify: `apps/web/src/app/features/login/login.component.html`
+
+**Interfaces:**
+- No change to `LoginComponent`'s public API (`form`, `errorMessage`, `onSubmit()`) — this task
+  only replaces the template markup/classes. `login.component.spec.ts` (Task 16) is untouched and
+  must still pass unmodified, since its assertions never inspect the DOM structure (they drive
+  `component.form`/`component.onSubmit()` directly and check `authService.login`/`router.navigate`
+  mock calls).
+
+Simplifications vs. the mockup: the "¿Olvidó su contraseña?" link and the password-visibility
+toggle button are dropped — password recovery is explicitly out of scope for this phase (per the
+original design spec's "Explícitamente fuera de alcance"), and a non-functional link/button would
+be dead UI.
+
+- [ ] **Step 1: Replace `login.component.html`**
+
+```html
+<div class="min-h-screen flex items-center justify-center bg-surface p-margin-mobile md:p-margin-desktop font-body-lg text-body-lg text-on-surface">
+  <main class="w-full max-w-[440px] bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-lg flex flex-col gap-lg">
+    <div class="flex flex-col items-center text-center gap-sm">
+      <div class="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+        <span class="material-symbols-outlined text-primary text-[40px]">account_balance</span>
+      </div>
+      <div>
+        <h1 class="font-display-lg text-display-lg text-primary tracking-tight">ICM Loja</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-base">Sistema de Multas</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-md">
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="email">Correo Electrónico</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">mail</span>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="usuario@icm.gob.ec"
+            class="w-full h-12 pl-10 pr-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200"
+          />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="password">Contraseña</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">lock</span>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            class="w-full h-12 pl-10 pr-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200"
+          />
+        </div>
+      </div>
+
+      @if (errorMessage) {
+        <p class="text-error text-body-sm">{{ errorMessage }}</p>
+      }
+
+      <button
+        type="submit"
+        class="mt-sm h-12 w-full bg-primary text-on-primary rounded-md font-headline-md text-headline-md hover:bg-primary-container active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
+      >
+        Iniciar Sesión
+        <span class="material-symbols-outlined text-[20px]">login</span>
+      </button>
+
+      <div class="mt-xs text-center">
+        <p class="font-body-sm text-body-sm text-on-surface-variant flex items-center justify-center gap-xs">
+          <span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+          Acceso seguro y autorizado
+        </p>
+      </div>
+    </form>
+  </main>
+</div>
+```
+
+- [ ] **Step 2: Run the existing LoginComponent + full suite to confirm no regressions**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | tail -20
+```
+
+Expected: all specs still pass (this template-only change shouldn't affect any test — the 3
+`LoginComponent` specs from Task 16 drive the component directly, not through the DOM).
+
+- [ ] **Step 3: Commit**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion
+git add apps/web/src/app/features/login/login.component.html
+git commit -m "feat(web): restyle LoginComponent to institutional design"
+```
+
+---
+
+### Task 21: Rebuild `HomeComponent` as the institutional Dashboard (TDD)
+
+**Files:**
+- Modify: `apps/web/src/app/features/home/home.component.ts`
+- Modify: `apps/web/src/app/features/home/home.component.html`
+- Modify: `apps/web/src/app/features/home/home.component.spec.ts`
+
+**Interfaces:**
+- Consumes: `AuthService.currentUser$`/`loadCurrentUser()` (Task 13), `AppShellComponent` (Task 19).
+- Produces: `HomeComponent` no longer owns logout directly (moved to `AppShellComponent`) — its
+  `Router` injection and `onLogout()` method are removed. Static placeholder arrays `kpis` and
+  `actividadReciente` replace the old plain welcome-only template.
+
+The logout-button test that lived in `home.component.spec.ts` (Task 17) is superseded by
+`AppShellComponent`'s own logout test (Task 19) — `HomeComponent` no longer renders that button
+itself, `AppShellComponent` does, so testing it here would be redundant/misplaced.
+
+- [ ] **Step 1: Write the failing test (full replacement of `home.component.spec.ts`)**
+
+```typescript
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { vi } from 'vitest';
+import { HomeComponent } from './home.component';
+import { AuthService } from '../../core/auth.service';
+import { User } from '../../core/models/user.model';
+
+describe('HomeComponent', () => {
+  let fixture: ComponentFixture<HomeComponent>;
+
+  beforeEach(async () => {
+    const authService = {
+      loadCurrentUser: vi.fn().mockReturnValue(of(null)),
+      currentUser$: of<User | null>({ id: 1, email: 'a@b.com', full_name: 'Ana Pérez' }),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [HomeComponent],
+      providers: [provideRouter([]), { provide: AuthService, useValue: authService }],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(HomeComponent);
+    fixture.detectChanges();
+  });
+
+  it('displays the current user full name', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Ana Pérez');
+  });
+
+  it('displays KPI cards with placeholder metrics', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Total Multas Registradas');
+    expect(text).toContain('12,450');
+  });
+
+  it('displays the recent activity table', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Actividad Reciente');
+    expect(text).toContain('Juan Pérez Morales');
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A10 "HomeComponent"
+```
+
+Expected: FAIL — the old component doesn't render "Total Multas Registradas" or "Actividad
+Reciente" text.
+
+- [ ] **Step 3: Replace `home.component.ts`**
+
+```typescript
+import { Component, inject, OnInit } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { AuthService } from '../../core/auth.service';
+import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
+
+@Component({
+  selector: 'app-home',
+  standalone: true,
+  imports: [AsyncPipe, AppShellComponent],
+  templateUrl: './home.component.html',
+})
+export class HomeComponent implements OnInit {
+  private readonly authService = inject(AuthService);
+
+  readonly currentUser$ = this.authService.currentUser$;
+
+  readonly kpis = [
+    { label: 'Total Multas Registradas', value: '12,450', trend: '+5%', icon: 'receipt_long' },
+    { label: 'Recaudación del Mes', value: '$45.2K', trend: '+12%', icon: 'payments' },
+    { label: 'Multas Pendientes', value: '3,120', trend: '+2%', icon: 'warning' },
+    { label: 'Usuarios Activos', value: '85', trend: 'hoy', icon: 'group' },
+  ];
+
+  readonly actividadReciente = [
+    { ciudadano: 'Juan Pérez Morales', fecha: '12 Oct 2023', monto: '$120.00', estado: 'Pagado' },
+    { ciudadano: 'María Elena Castro', fecha: '11 Oct 2023', monto: '$45.50', estado: 'Pendiente' },
+    { ciudadano: 'Carlos Rojas', fecha: '11 Oct 2023', monto: '$250.00', estado: 'Pendiente' },
+    { ciudadano: 'Ana Silva', fecha: '10 Oct 2023', monto: '$85.00', estado: 'Pagado' },
+    { ciudadano: 'Roberto Núñez', fecha: '09 Oct 2023', monto: '$300.00', estado: 'Pendiente' },
+  ];
+
+  ngOnInit(): void {
+    this.authService.loadCurrentUser().subscribe();
+  }
+}
+```
+
+- [ ] **Step 4: Replace `home.component.html`**
+
+```html
+<app-shell activeRoute="dashboard">
+  <div class="mb-lg">
+    <h2 class="font-display-lg text-display-lg text-on-surface mb-xs">Resumen Ejecutivo</h2>
+    @if (currentUser$ | async; as user) {
+      <p class="text-on-surface-variant font-body-lg text-body-lg">
+        Bienvenido, <span class="font-semibold text-on-surface">{{ user.full_name }}</span>.
+        Métricas clave y actividad reciente del sistema.
+      </p>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
+    @for (kpi of kpis; track kpi.label) {
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow duration-300">
+        <div class="flex items-center justify-between mb-sm">
+          <span class="font-label-caps text-label-caps text-on-surface-variant uppercase bg-surface-container-low px-2 py-1 rounded-DEFAULT">{{ kpi.label }}</span>
+          <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-primary-container text-[20px]">{{ kpi.icon }}</span>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-xs">
+          <span class="font-display-lg text-display-lg text-primary">{{ kpi.value }}</span>
+          <span class="text-on-surface-variant font-body-sm text-body-sm">{{ kpi.trend }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div class="p-md border-b border-outline-variant flex justify-between items-center">
+      <h3 class="font-headline-md text-headline-md text-on-surface">Actividad Reciente</h3>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-container-low border-b border-outline-variant">
+            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Ciudadano</th>
+            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Fecha</th>
+            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Monto</th>
+            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm text-on-surface">
+          @for (item of actividadReciente; track item.ciudadano) {
+            <tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+              <td class="py-sm px-md font-semibold">{{ item.ciudadano }}</td>
+              <td class="py-sm px-md text-on-surface-variant">{{ item.fecha }}</td>
+              <td class="py-sm px-md font-mono">{{ item.monto }}</td>
+              <td class="py-sm px-md">
+                @if (item.estado === 'Pagado') {
+                  <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-[#dcfce7] text-[#166534] font-label-caps text-label-caps">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#166534]"></span>
+                    Pagado
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-[#fef3c7] text-[#92400e] font-label-caps text-label-caps">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#92400e]"></span>
+                    Pendiente
+                  </span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</app-shell>
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A10 "HomeComponent"
+```
+
+Expected: 3 specs, 0 failures.
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion
+git add apps/web/src/app/features/home
+git commit -m "feat(web): rebuild HomeComponent as institutional Dashboard"
+```
+
+---
+
+### Task 22: `ReportesComponent` (TDD)
+
+**Files:**
+- Create: `apps/web/src/app/features/reportes/reportes.component.ts`
+- Create: `apps/web/src/app/features/reportes/reportes.component.html`
+- Create: `apps/web/src/app/features/reportes/reportes.component.spec.ts`
+
+**Interfaces:**
+- Consumes: `AppShellComponent` (Task 19).
+- Produces: standalone `ReportesComponent`, selector `app-reportes`, route target for `/reportes`
+  (wired in Task 24).
+
+Simplifications vs. the mockup: the "Filtrar"/"Descargar PDF" buttons and the per-row "visibility"
+detail button are visual-only (no click handlers) — there is no backend filtering/PDF-generation
+endpoint in this phase (per the addendum's explicit "sin llamadas HTTP"). Pagination is shown as
+static text, not interactive page buttons, for the same reason.
+
+- [ ] **Step 1: Write the failing test**
+
+```bash
+mkdir -p /Users/juanpablotorres/Documents/matriculacion/apps/web/src/app/features/reportes
+```
+
+`apps/web/src/app/features/reportes/reportes.component.spec.ts`:
+```typescript
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
+import { ReportesComponent } from './reportes.component';
+import { AuthService } from '../../core/auth.service';
+
+describe('ReportesComponent', () => {
+  let fixture: ComponentFixture<ReportesComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ReportesComponent],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { logout: vi.fn() } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ReportesComponent);
+    fixture.detectChanges();
+  });
+
+  it('renders the page title', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Generación de Reportes de Multas');
+  });
+
+  it('renders the placeholder multas table', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('#MLT-2023-0891');
+    expect(text).toContain('Juan Pérez Gómez');
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A5 "ReportesComponent"
+```
+
+Expected: FAIL — `Cannot find module './reportes.component'`.
+
+- [ ] **Step 3: Write `reportes.component.ts`**
+
+`apps/web/src/app/features/reportes/reportes.component.ts`:
+```typescript
+import { Component } from '@angular/core';
+import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
+
+@Component({
+  selector: 'app-reportes',
+  standalone: true,
+  imports: [AppShellComponent],
+  templateUrl: './reportes.component.html',
+})
+export class ReportesComponent {
+  readonly multas = [
+    { id: '#MLT-2023-0891', ciudadano: 'Juan Pérez Gómez', fecha: '12 Oct 2023', valor: '$120.00', estado: 'Pendiente' },
+    { id: '#MLT-2023-0890', ciudadano: 'María López Ruiz', fecha: '10 Oct 2023', valor: '$45.50', estado: 'Pagado' },
+    { id: '#MLT-2023-0889', ciudadano: 'Carlos Mendoza V.', fecha: '08 Oct 2023', valor: '$250.00', estado: 'Anulado' },
+    { id: '#MLT-2023-0888', ciudadano: 'Ana Torres Silva', fecha: '05 Oct 2023', valor: '$60.00', estado: 'Pagado' },
+    { id: '#MLT-2023-0887', ciudadano: 'Luis Castro D.', fecha: '01 Oct 2023', valor: '$180.00', estado: 'Pendiente' },
+  ];
+
+  estadoBadgeClass(estado: string): string {
+    switch (estado) {
+      case 'Pagado':
+        return 'inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-surface-container-high text-primary';
+      case 'Anulado':
+        return 'inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-error-container text-on-error-container';
+      default:
+        return 'inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-tertiary-fixed text-tertiary';
+    }
+  }
+}
+```
+
+- [ ] **Step 4: Write `reportes.component.html`**
+
+`apps/web/src/app/features/reportes/reportes.component.html`:
+```html
+<app-shell activeRoute="reportes">
+  <div class="mb-lg">
+    <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-xs">Generación de Reportes de Multas</h1>
+    <p class="font-body-lg text-body-lg text-on-surface-variant">Filtre y descargue reportes detallados del sistema.</p>
+  </div>
+
+  <section class="bg-surface-container-lowest rounded-lg border border-outline-variant p-md mb-lg">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-md items-end">
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant" for="date-from">FECHA DESDE</label>
+        <input id="date-from" type="date" class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />
+      </div>
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant" for="date-to">FECHA HASTA</label>
+        <input id="date-to" type="date" class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />
+      </div>
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant" for="status">ESTADO</label>
+        <select id="status" class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+          <option value="all">Todos</option>
+          <option value="pending">Pendiente</option>
+          <option value="paid">Pagado</option>
+          <option value="void">Anulado</option>
+        </select>
+      </div>
+      <div class="flex gap-sm h-[38px]">
+        <button type="button" class="flex-1 bg-surface border border-primary text-primary font-headline-md text-body-sm rounded-DEFAULT hover:bg-surface-container transition-colors flex items-center justify-center font-semibold">
+          Filtrar
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex justify-between items-center mb-md">
+    <h3 class="font-headline-md text-headline-md text-on-surface">Resultados del Reporte</h3>
+    <button type="button" class="bg-primary text-on-primary font-headline-md text-body-sm px-md py-xs rounded-DEFAULT hover:bg-primary-container transition-colors shadow-sm flex items-center gap-xs font-semibold">
+      <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+      Descargar PDF
+    </button>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[800px]">
+      <thead>
+        <tr class="bg-surface-container-low border-b border-outline-variant">
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">ID MULTA</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">CIUDADANO</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">FECHA</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">VALOR</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">ESTADO</th>
+        </tr>
+      </thead>
+      <tbody class="font-body-sm text-body-sm text-on-surface">
+        @for (multa of multas; track multa.id) {
+          <tr class="border-b border-outline-variant/50 hover:bg-surface-container-lowest/50 transition-colors">
+            <td class="px-md py-sm font-medium">{{ multa.id }}</td>
+            <td class="px-md py-sm">{{ multa.ciudadano }}</td>
+            <td class="px-md py-sm">{{ multa.fecha }}</td>
+            <td class="px-md py-sm font-medium">{{ multa.valor }}</td>
+            <td class="px-md py-sm">
+              <span [class]="estadoBadgeClass(multa.estado)">{{ multa.estado }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <div class="px-md py-sm border-t border-outline-variant flex items-center justify-between bg-surface">
+      <span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando 1 a {{ multas.length }} de 142 registros</span>
+    </div>
+  </div>
+</app-shell>
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A5 "ReportesComponent"
+```
+
+Expected: 2 specs, 0 failures.
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion
+git add apps/web/src/app/features/reportes
+git commit -m "feat(web): add ReportesComponent with placeholder data"
+```
+
+---
+
+### Task 23: `AdministracionUsuariosComponent` (TDD)
+
+**Files:**
+- Create: `apps/web/src/app/features/administracion-usuarios/administracion-usuarios.component.ts`
+- Create: `apps/web/src/app/features/administracion-usuarios/administracion-usuarios.component.html`
+- Create: `apps/web/src/app/features/administracion-usuarios/administracion-usuarios.component.spec.ts`
+
+**Interfaces:**
+- Consumes: `AppShellComponent` (Task 19).
+- Produces: standalone `AdministracionUsuariosComponent`, selector `app-administracion-usuarios`,
+  route target for `/usuarios` (wired in Task 24).
+
+Simplifications vs. the mockup: "Nuevo Usuario", the search box, and the per-row "Editar"/"Eliminar"
+buttons are visual-only (no handlers) — there is no user-management backend endpoint in this phase
+(`seed_user.py` CLI remains the only user-creation path, per the original spec's constraints).
+
+- [ ] **Step 1: Write the failing test**
+
+```bash
+mkdir -p /Users/juanpablotorres/Documents/matriculacion/apps/web/src/app/features/administracion-usuarios
+```
+
+`apps/web/src/app/features/administracion-usuarios/administracion-usuarios.component.spec.ts`:
+```typescript
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
+import { AdministracionUsuariosComponent } from './administracion-usuarios.component';
+import { AuthService } from '../../core/auth.service';
+
+describe('AdministracionUsuariosComponent', () => {
+  let fixture: ComponentFixture<AdministracionUsuariosComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AdministracionUsuariosComponent],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { logout: vi.fn() } },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(AdministracionUsuariosComponent);
+    fixture.detectChanges();
+  });
+
+  it('renders the page title', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Administración de Usuarios');
+  });
+
+  it('renders the placeholder users table', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Ana Silva Pérez');
+    expect(text).toContain('ana.silva@icmloja.gob.ec');
+  });
+});
+```
+
+- [ ] **Step 2: Run to verify it fails**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A5 "AdministracionUsuariosComponent"
+```
+
+Expected: FAIL — `Cannot find module './administracion-usuarios.component'`.
+
+- [ ] **Step 3: Write `administracion-usuarios.component.ts`**
+
+`apps/web/src/app/features/administracion-usuarios/administracion-usuarios.component.ts`:
+```typescript
+import { Component } from '@angular/core';
+import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
+
+@Component({
+  selector: 'app-administracion-usuarios',
+  standalone: true,
+  imports: [AppShellComponent],
+  templateUrl: './administracion-usuarios.component.html',
+})
+export class AdministracionUsuariosComponent {
+  readonly usuarios = [
+    { nombre: 'Ana Silva Pérez', email: 'ana.silva@icmloja.gob.ec', rol: 'Admin', estado: 'Activo' },
+    { nombre: 'Carlos Mendoza', email: 'c.mendoza@icmloja.gob.ec', rol: 'Employee', estado: 'Activo' },
+    { nombre: 'Lucía Torres', email: 'ltorres@icmloja.gob.ec', rol: 'Employee', estado: 'Inactivo' },
+    { nombre: 'Javier Ruíz', email: 'jruiz@icmloja.gob.ec', rol: 'Employee', estado: 'Activo' },
+  ];
+
+  estadoBadgeClass(estado: string): string {
+    return estado === 'Activo'
+      ? 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+      : 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]';
+  }
+}
+```
+
+- [ ] **Step 4: Write `administracion-usuarios.component.html`**
+
+`apps/web/src/app/features/administracion-usuarios/administracion-usuarios.component.html`:
+```html
+<app-shell activeRoute="usuarios">
+  <div class="flex justify-between items-center mb-lg">
+    <h2 class="font-display-lg text-display-lg text-on-surface">Administración de Usuarios</h2>
+    <button type="button" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold flex items-center gap-2 transition-colors shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">add</span>
+      Nuevo Usuario
+    </button>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+    <div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+      <div class="relative w-64">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">search</span>
+        <input type="text" placeholder="Buscar usuarios..." class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded-DEFAULT font-body-sm text-body-sm bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" />
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-surface-container-low border-b border-outline-variant">
+          <tr>
+            <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Nombre</th>
+            <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Email</th>
+            <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Rol</th>
+            <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
+          @for (usuario of usuarios; track usuario.email) {
+            <tr class="hover:bg-surface-container-lowest/50 transition-colors">
+              <td class="py-3 px-md font-medium text-on-surface">{{ usuario.nombre }}</td>
+              <td class="py-3 px-md text-on-surface-variant">{{ usuario.email }}</td>
+              <td class="py-3 px-md text-on-surface-variant">{{ usuario.rol }}</td>
+              <td class="py-3 px-md">
+                <span [class]="estadoBadgeClass(usuario.estado)">{{ usuario.estado }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-bright">
+      <span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando {{ usuarios.length }} de 24 usuarios</span>
+    </div>
+  </div>
+</app-shell>
+```
+
+- [ ] **Step 5: Run to verify it passes**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion/apps/web
+npx ng test --watch=false 2>&1 | grep -A5 "AdministracionUsuariosComponent"
+```
+
+Expected: 2 specs, 0 failures.
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd /Users/juanpablotorres/Documents/matriculacion
+git add apps/web/src/app/features/administracion-usuarios
+git commit -m "feat(web): add AdministracionUsuariosComponent with placeholder data"
+```
+
+---
+
+### Task 24: Routing, app bootstrap, and end-to-end manual verification
 
 **Files:**
 - Modify: `apps/web/src/app/app.routes.ts` (already exists, created empty by `ng new --routing`)
@@ -2083,7 +3177,8 @@ git commit -m "feat(web): add HomeComponent"
 
 **Interfaces:**
 - Consumes: `authGuard` (Task 15), `authInterceptor` (Task 14), `LoginComponent` (Task 16),
-  `HomeComponent` (Task 17).
+  `HomeComponent` (Task 21), `ReportesComponent` (Task 22), `AdministracionUsuariosComponent`
+  (Task 23).
 
 - [ ] **Step 1: Write `app.routes.ts`**
 
@@ -2093,10 +3188,14 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
 import { LoginComponent } from './features/login/login.component';
 import { HomeComponent } from './features/home/home.component';
+import { ReportesComponent } from './features/reportes/reportes.component';
+import { AdministracionUsuariosComponent } from './features/administracion-usuarios/administracion-usuarios.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'home', component: HomeComponent, canActivate: [authGuard] },
+  { path: 'reportes', component: ReportesComponent, canActivate: [authGuard] },
+  { path: 'usuarios', component: AdministracionUsuariosComponent, canActivate: [authGuard] },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' },
 ];
@@ -2171,7 +3270,8 @@ npx ng test --watch=false
 ```
 
 Expected: all specs pass (AuthService: 3, authInterceptor: 3, authGuard: 2, LoginComponent: 3,
-HomeComponent: 2, App: 2 — 15 total).
+AppShellComponent: 3, HomeComponent: 3, ReportesComponent: 2, AdministracionUsuariosComponent: 2,
+App: 2 — 23 total).
 
 - [ ] **Step 5: End-to-end manual verification**
 
@@ -2189,13 +3289,21 @@ npm start
 ```
 
 In a browser, open `http://localhost:4200`:
-1. Should redirect to `/login` (no session yet).
+1. Should redirect to `/login` (no session yet), showing the institutional login card (logo
+   circle, Inter typography, deep navy primary color, mail/lock icons in the input fields).
 2. Log in with `admin@loja.gob.ec` / `ChangeMe123!` (created in Task 6).
-3. Should redirect to `/home`, showing "Bienvenido, Administrador" and the nav placeholders for
-   Admin/Reportería.
-4. Refresh the page — should stay on `/home` (session persisted via `localStorage`).
-5. Click "Cerrar sesión" — should redirect to `/login`.
-6. Try navigating directly to `http://localhost:4200/home` while logged out — should redirect
+3. Should redirect to `/home`, showing the sidebar (Dashboard/Reportes/Administración de Usuarios
+   + Cerrar Sesión), "Resumen Ejecutivo" with "Bienvenido, Administrador", 4 KPI cards, and the
+   "Actividad Reciente" table.
+4. Click "Reportes" in the sidebar — should navigate to `/reportes`, showing the filter bar and
+   the placeholder multas table, with "Reportes" highlighted in the sidebar (Dashboard no longer
+   highlighted).
+5. Click "Administración de Usuarios" in the sidebar — should navigate to `/usuarios`, showing the
+   search bar and the placeholder users table, with that link highlighted instead.
+6. Refresh the page while on `/usuarios` — should stay on `/usuarios` (session persisted via
+   `localStorage`).
+7. Click "Cerrar Sesión" in the sidebar — should redirect to `/login`.
+8. Try navigating directly to `http://localhost:4200/reportes` while logged out — should redirect
    back to `/login`.
 
 - [ ] **Step 6: Commit**
@@ -2210,17 +3318,31 @@ git commit -m "feat(web): wire routing, guard, and interceptor into the app"
 
 ## Self-Review Notes
 
-- **Spec coverage**: monorepo structure (Tasks 1, 11), DB isolation in `app` schema (Task 2),
-  `app.users` table (Tasks 2–3), no PostgREST/Prisma (never introduced), login + `/me` endpoints
-  (Tasks 8–9), no public signup / seed script only (Task 6), JWT 8h no refresh (Task 4), Tailwind
-  (Task 11), `AuthGuard`/`AuthInterceptor`/`AuthService` (Tasks 13–15), Login/Home components
-  (Tasks 16–17), nav placeholders for Admin/Reportería (Task 17), CORS (Task 10), testing
-  (pytest throughout backend tasks; frontend tests use Angular's Vitest-based `@angular/build:unit-test`
-  runner, discovered at Task 13 execution time — specs updated in place to use `vi.fn()` mocks
-  instead of the originally-planned Jasmine spies). All spec sections are covered.
-- **Placeholder scan**: no TBD/TODO; every step has complete, runnable code.
+- **Spec coverage (original)**: monorepo structure (Tasks 1, 11), DB isolation in `app` schema
+  (Task 2), `app.users` table (Tasks 2–3), no PostgREST/Prisma (never introduced), login + `/me`
+  endpoints (Tasks 8–9), no public signup / seed script only (Task 6), JWT 8h no refresh (Task 4),
+  Tailwind (Task 11), `AuthGuard`/`AuthInterceptor`/`AuthService` (Tasks 13–15), Login/Home
+  components (Tasks 16, 21), CORS (Task 10), testing (pytest throughout backend tasks; frontend
+  tests use Angular's Vitest-based `@angular/build:unit-test` runner, discovered at Task 13
+  execution time — specs updated in place to use `vi.fn()` mocks instead of the originally-planned
+  Jasmine spies). All original spec sections are covered.
+- **Spec coverage (institutional design addendum, Tasks 18-24)**: see
+  `docs/superpowers/specs/2026-08-06-institutional-design-addendum.md`. Design tokens from
+  `desing/institutional_authority_system/DESIGN.md` (Task 18), shared sidebar/top-bar shell
+  (Task 19), Login restyle preserving existing logic (Task 20), Dashboard with KPIs/activity table
+  and placeholder data (Task 21), Reportes de Multas with placeholder data (Task 22),
+  Administración de Usuarios with placeholder data (Task 23), routes + nav wiring for all 3
+  authenticated pages (Task 24). Explicitly NOT covered by this addendum, per its own "Próximos
+  pasos": real `axis.*` data wiring, user CRUD backend, PDF export, roles/permissions — all
+  correctly left as static/placeholder/non-functional in Tasks 21-23.
+- **Placeholder scan**: no TBD/TODO; every step has complete, runnable code (including the
+  addendum's static example-data arrays, which are intentional placeholder *data*, not
+  placeholder *code* — every array is a concrete, complete literal, not a stub).
 - **Type consistency**: `User` (frontend) matches `UserOut` (backend) fields (`id`, `email`,
   `full_name`). `TokenResponse`/`access_token`/`token_type` used consistently across Task 8, 9,
   13. `AuthService` method names (`login`, `logout`, `isAuthenticated`, `getToken`,
   `loadCurrentUser`, `currentUser$`) match exactly between their definition (Task 13) and every
-  later consumer (Tasks 14, 15, 16, 17).
+  later consumer (Tasks 14, 15, 16, 19, 21). `AppShellComponent`'s `activeRoute` type
+  (`'dashboard' | 'reportes' | 'usuarios'`) is used identically by its own template (Task 19) and
+  every consumer (`HomeComponent` Task 21, `ReportesComponent` Task 22,
+  `AdministracionUsuariosComponent` Task 23).
