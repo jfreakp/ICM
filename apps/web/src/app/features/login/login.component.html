@@ -1,0 +1,32 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="bg-white p-8 rounded shadow-md w-80">
+    <h1 class="text-xl font-bold mb-6">Iniciar sesión</h1>
+
+    <label class="block text-sm font-medium mb-1" for="email">Correo</label>
+    <input
+      id="email"
+      type="email"
+      formControlName="email"
+      class="w-full border rounded px-3 py-2 mb-4"
+    />
+
+    <label class="block text-sm font-medium mb-1" for="password">Contraseña</label>
+    <input
+      id="password"
+      type="password"
+      formControlName="password"
+      class="w-full border rounded px-3 py-2 mb-4"
+    />
+
+    @if (errorMessage) {
+      <p class="text-red-600 text-sm mb-4">{{ errorMessage }}</p>
+    }
+
+    <button
+      type="submit"
+      class="w-full bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700"
+    >
+      Entrar
+    </button>
+  </form>
+</div>
