@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { User } from './models/user.model';
 import { environment } from '../../environments/environment';
 
 describe('AuthService', () => {
@@ -23,11 +24,9 @@ describe('AuthService', () => {
   });
 
   it('stores the token and emits the user on successful login', () => {
+    let emittedUser: User | null = null;
     service.currentUser$.subscribe((user) => {
-      if (user) {
-        expect(user.email).toBe('user@example.com');
-        expect(localStorage.getItem('access_token')).toBe('fake-token');
-      }
+      emittedUser = user;
     });
 
     service.login('user@example.com', 'secret').subscribe();
@@ -38,6 +37,10 @@ describe('AuthService', () => {
 
     const meReq = httpMock.expectOne(`${environment.apiUrl}/auth/me`);
     meReq.flush({ id: 1, email: 'user@example.com', full_name: 'Test User' });
+
+    expect(emittedUser).not.toBeNull();
+    expect((emittedUser as User | null)?.email).toBe('user@example.com');
+    expect(localStorage.getItem('access_token')).toBe('fake-token');
   });
 
   it('clears the token and emits null on logout', () => {
