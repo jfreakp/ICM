@@ -1474,18 +1474,19 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
+import { Mock, vi } from 'vitest';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from './auth.service';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let authService: { getToken: Mock; logout: Mock };
+  let router: { navigate: Mock };
 
   beforeEach(() => {
-    authService = jasmine.createSpyObj('AuthService', ['getToken', 'logout']);
-    router = jasmine.createSpyObj('Router', ['navigate']);
+    authService = { getToken: vi.fn(), logout: vi.fn() };
+    router = { navigate: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [
@@ -1502,7 +1503,7 @@ describe('authInterceptor', () => {
   afterEach(() => httpMock.verify());
 
   it('adds the Authorization header when a token is present', () => {
-    authService.getToken.and.returnValue('fake-token');
+    authService.getToken.mockReturnValue('fake-token');
 
     http.get('/api/whatever').subscribe();
 
@@ -1512,7 +1513,7 @@ describe('authInterceptor', () => {
   });
 
   it('does not add the header when there is no token', () => {
-    authService.getToken.and.returnValue(null);
+    authService.getToken.mockReturnValue(null);
 
     http.get('/api/whatever').subscribe();
 
@@ -1522,7 +1523,7 @@ describe('authInterceptor', () => {
   });
 
   it('logs out and redirects to /login on a 401 response', () => {
-    authService.getToken.and.returnValue('fake-token');
+    authService.getToken.mockReturnValue('fake-token');
 
     http.get('/api/whatever').subscribe({ error: () => {} });
 
@@ -1535,11 +1536,16 @@ describe('authInterceptor', () => {
 });
 ```
 
+Note: this project's test runner is Vitest (`@angular/build:unit-test`), not Karma/Jasmine — no
+`jasmine` global is available. Mocks use `vi.fn()`/`Mock` from `'vitest'` instead of
+`jasmine.createSpyObj`/`jasmine.SpyObj`, and `.mockReturnValue(...)` instead of `.and.returnValue(...)`.
+`expect(...).toHaveBeenCalled()`/`toHaveBeenCalledWith(...)` work identically under Vitest.
+
 - [ ] **Step 2: Run to verify it fails**
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "authInterceptor"
+npx ng test --watch=false 2>&1 | grep -A5 "authInterceptor"
 ```
 
 Expected: FAIL — `Cannot find module './auth.interceptor'`.
@@ -1576,7 +1582,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "authInterceptor"
+npx ng test --watch=false 2>&1 | grep -A5 "authInterceptor"
 ```
 
 Expected: 3 specs, 0 failures.
@@ -1608,16 +1614,17 @@ git commit -m "feat(web): add HTTP interceptor for auth header and 401 handling"
 ```typescript
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { Mock, vi } from 'vitest';
 import { authGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 
 describe('authGuard', () => {
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let authService: { isAuthenticated: Mock };
+  let router: { navigate: Mock };
 
   beforeEach(() => {
-    authService = jasmine.createSpyObj('AuthService', ['isAuthenticated']);
-    router = jasmine.createSpyObj('Router', ['navigate']);
+    authService = { isAuthenticated: vi.fn() };
+    router = { navigate: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: authService },
@@ -1627,14 +1634,14 @@ describe('authGuard', () => {
   });
 
   it('allows navigation when authenticated', () => {
-    authService.isAuthenticated.and.returnValue(true);
+    authService.isAuthenticated.mockReturnValue(true);
     const result = TestBed.runInInjectionContext(() => authGuard({} as any, {} as any));
     expect(result).toBe(true);
     expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('blocks navigation and redirects to /login when not authenticated', () => {
-    authService.isAuthenticated.and.returnValue(false);
+    authService.isAuthenticated.mockReturnValue(false);
     const result = TestBed.runInInjectionContext(() => authGuard({} as any, {} as any));
     expect(result).toBe(false);
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
@@ -1642,11 +1649,15 @@ describe('authGuard', () => {
 });
 ```
 
+Note: this project's test runner is Vitest, not Karma/Jasmine — mocks use `vi.fn()`/`Mock` from
+`'vitest'` instead of `jasmine.createSpyObj`/`jasmine.SpyObj`, and `.mockReturnValue(...)` instead
+of `.and.returnValue(...)`.
+
 - [ ] **Step 2: Run to verify it fails**
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "authGuard"
+npx ng test --watch=false 2>&1 | grep -A5 "authGuard"
 ```
 
 Expected: FAIL — `Cannot find module './auth.guard'`.
@@ -1674,7 +1685,7 @@ export const authGuard: CanActivateFn = () => {
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "authGuard"
+npx ng test --watch=false 2>&1 | grep -A5 "authGuard"
 ```
 
 Expected: 2 specs, 0 failures.
@@ -1709,18 +1720,19 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Mock, vi } from 'vitest';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../core/auth.service';
 
 describe('LoginComponent', () => {
   let fixture: ComponentFixture<LoginComponent>;
   let component: LoginComponent;
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let authService: { login: Mock };
+  let router: { navigate: Mock };
 
   beforeEach(async () => {
-    authService = jasmine.createSpyObj('AuthService', ['login']);
-    router = jasmine.createSpyObj('Router', ['navigate']);
+    authService = { login: vi.fn() };
+    router = { navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [LoginComponent, ReactiveFormsModule],
@@ -1735,7 +1747,7 @@ describe('LoginComponent', () => {
   });
 
   it('navigates to /home on successful login', () => {
-    authService.login.and.returnValue(of({ id: 1, email: 'a@b.com', full_name: 'A' }));
+    authService.login.mockReturnValue(of({ id: 1, email: 'a@b.com', full_name: 'A' }));
     component.form.setValue({ email: 'a@b.com', password: 'secret' });
 
     component.onSubmit();
@@ -1745,7 +1757,7 @@ describe('LoginComponent', () => {
   });
 
   it('shows an error message on failed login', () => {
-    authService.login.and.returnValue(
+    authService.login.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 401, error: { detail: 'Credenciales inválidas' } }))
     );
     component.form.setValue({ email: 'a@b.com', password: 'wrong' });
@@ -1766,11 +1778,15 @@ describe('LoginComponent', () => {
 });
 ```
 
+Note: this project's test runner is Vitest, not Karma/Jasmine — mocks use `vi.fn()`/`Mock` from
+`'vitest'` instead of `jasmine.createSpyObj`/`jasmine.SpyObj`, and `.mockReturnValue(...)` instead
+of `.and.returnValue(...)`.
+
 - [ ] **Step 2: Run to verify it fails**
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "LoginComponent"
+npx ng test --watch=false 2>&1 | grep -A5 "LoginComponent"
 ```
 
 Expected: FAIL — `Cannot find module './login.component'`.
@@ -1867,7 +1883,7 @@ export class LoginComponent {
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "LoginComponent"
+npx ng test --watch=false 2>&1 | grep -A5 "LoginComponent"
 ```
 
 Expected: 3 specs, 0 failures.
@@ -1901,21 +1917,22 @@ git commit -m "feat(web): add LoginComponent"
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
+import { Mock, vi } from 'vitest';
 import { HomeComponent } from './home.component';
 import { AuthService } from '../../core/auth.service';
 import { User } from '../../core/models/user.model';
 
 describe('HomeComponent', () => {
   let fixture: ComponentFixture<HomeComponent>;
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let authService: { logout: Mock; loadCurrentUser: Mock; currentUser$: BehaviorSubject<User | null> };
+  let router: { navigate: Mock };
   let currentUser$: BehaviorSubject<User | null>;
 
   beforeEach(async () => {
     currentUser$ = new BehaviorSubject<User | null>({ id: 1, email: 'a@b.com', full_name: 'Ana Pérez' });
-    authService = jasmine.createSpyObj('AuthService', ['logout', 'loadCurrentUser'], { currentUser$ });
-    authService.loadCurrentUser.and.returnValue(of(null));
-    router = jasmine.createSpyObj('Router', ['navigate']);
+    authService = { logout: vi.fn(), loadCurrentUser: vi.fn(), currentUser$ };
+    authService.loadCurrentUser.mockReturnValue(of(null));
+    router = { navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [HomeComponent],
@@ -1944,11 +1961,17 @@ describe('HomeComponent', () => {
 });
 ```
 
+Note: this project's test runner is Vitest, not Karma/Jasmine — mocks use `vi.fn()`/`Mock` from
+`'vitest'` instead of `jasmine.createSpyObj`/`jasmine.SpyObj`. Jasmine's 3-argument
+`createSpyObj(name, methods, baseProperties)` form (used here to give the spy object a real
+`currentUser$` property alongside spied methods) has no Vitest equivalent — instead, the plain
+object literal simply includes `currentUser$` directly, which is equivalent.
+
 - [ ] **Step 2: Run to verify it fails**
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "HomeComponent"
+npx ng test --watch=false 2>&1 | grep -A5 "HomeComponent"
 ```
 
 Expected: FAIL — `Cannot find module './home.component'`.
@@ -2025,7 +2048,7 @@ export class HomeComponent implements OnInit {
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | grep -A5 "HomeComponent"
+npx ng test --watch=false 2>&1 | grep -A5 "HomeComponent"
 ```
 
 Expected: 2 specs, 0 failures.
@@ -2043,10 +2066,11 @@ git commit -m "feat(web): add HomeComponent"
 ### Task 18: Routing, app bootstrap, and end-to-end manual verification
 
 **Files:**
-- Create: `apps/web/src/app/app.routes.ts`
+- Modify: `apps/web/src/app/app.routes.ts` (already exists, created empty by `ng new --routing`)
 - Modify: `apps/web/src/app/app.config.ts`
-- Modify: `apps/web/src/app/app.component.ts`
-- Modify: `apps/web/src/app/app.component.html`
+- Modify: `apps/web/src/app/app.ts` (root component; Angular CLI v22 names it `app.ts`/class
+  `App`, not the classic `app.component.ts`/`AppComponent` — see Task 11's note)
+- Modify: `apps/web/src/app/app.html`
 
 **Interfaces:**
 - Consumes: `authGuard` (Task 15), `authInterceptor` (Task 14), `LoginComponent` (Task 16),
@@ -2089,40 +2113,56 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-(If the generated file already has other providers such as `provideClientHydration`, keep them —
-only add `provideHttpClient(withInterceptors([authInterceptor]))` and the `authInterceptor`
-import.)
+(The generated file already has `provideBrowserGlobalErrorListeners()` in `providers` — keep it,
+just add `provideHttpClient(withInterceptors([authInterceptor]))` and the `authInterceptor`
+import alongside it, don't replace the array.)
 
-- [ ] **Step 3: Simplify `app.component.ts`/`app.component.html` to just the router outlet**
+- [ ] **Step 3: Simplify `app.ts`/`app.html` to just the router outlet**
 
-`apps/web/src/app/app.component.ts`:
+`apps/web/src/app/app.ts` (class name is `App`, not `AppComponent`, per Angular CLI v22's
+generator — keep it that way, don't rename back):
 ```typescript
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [RouterOutlet],
-  templateUrl: './app.component.html',
+  templateUrl: './app.html',
+  styleUrl: './app.css',
 })
-export class AppComponent {}
+export class App {}
 ```
 
-`apps/web/src/app/app.component.html`:
+`apps/web/src/app/app.html`:
 ```html
 <router-outlet />
 ```
+
+Also update `apps/web/src/app/app.spec.ts` (created in Task 11, fixed to check for the
+`Tailwind funciona` div) so its assertions match this simplified template — the `div` it currently
+checks for no longer exists once `app.html` is replaced with just `<router-outlet />`. Replace its
+"should render the Tailwind verification text" test with a minimal smoke check appropriate for a
+router-outlet-only root component, e.g.:
+```typescript
+it('should render a router outlet', () => {
+  const fixture = TestBed.createComponent(App);
+  fixture.detectChanges();
+  const compiled = fixture.nativeElement as HTMLElement;
+  expect(compiled.querySelector('router-outlet')).toBeTruthy();
+});
+```
+Keep the "should create the app" test unchanged.
 
 - [ ] **Step 4: Run the full frontend test suite**
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion/apps/web
-npx ng test --watch=false --browsers=ChromeHeadless
+npx ng test --watch=false
 ```
 
 Expected: all specs pass (AuthService: 3, authInterceptor: 3, authGuard: 2, LoginComponent: 3,
-HomeComponent: 2 — 13 total, plus the default `AppComponent` spec if still present).
+HomeComponent: 2, App: 2 — 15 total).
 
 - [ ] **Step 5: End-to-end manual verification**
 
@@ -2153,7 +2193,7 @@ In a browser, open `http://localhost:4200`:
 
 ```bash
 cd /Users/juanpablotorres/Documents/matriculacion
-git add apps/web/src/app/app.routes.ts apps/web/src/app/app.config.ts apps/web/src/app/app.component.ts apps/web/src/app/app.component.html
+git add apps/web/src/app/app.routes.ts apps/web/src/app/app.config.ts apps/web/src/app/app.ts apps/web/src/app/app.html apps/web/src/app/app.spec.ts
 git commit -m "feat(web): wire routing, guard, and interceptor into the app"
 ```
 
@@ -2166,8 +2206,9 @@ git commit -m "feat(web): wire routing, guard, and interceptor into the app"
   (Tasks 8–9), no public signup / seed script only (Task 6), JWT 8h no refresh (Task 4), Tailwind
   (Task 11), `AuthGuard`/`AuthInterceptor`/`AuthService` (Tasks 13–15), Login/Home components
   (Tasks 16–17), nav placeholders for Admin/Reportería (Task 17), CORS (Task 10), testing
-  (pytest throughout backend tasks, Jasmine/Karma throughout frontend tasks). All spec sections
-  are covered.
+  (pytest throughout backend tasks; frontend tests use Angular's Vitest-based `@angular/build:unit-test`
+  runner, discovered at Task 13 execution time — specs updated in place to use `vi.fn()` mocks
+  instead of the originally-planned Jasmine spies). All spec sections are covered.
 - **Placeholder scan**: no TBD/TODO; every step has complete, runnable code.
 - **Type consistency**: `User` (frontend) matches `UserOut` (backend) fields (`id`, `email`,
   `full_name`). `TokenResponse`/`access_token`/`token_type` used consistently across Task 8, 9,
