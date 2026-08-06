@@ -44,3 +44,31 @@ async def test_login_with_unknown_email_returns_401(client, db_session):
     )
 
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_me_with_valid_token_returns_user(client, db_session):
+    await _create_user(db_session, email="user@example.com", password="Sup3rSecret!")
+    login_response = await client.post(
+        "/api/auth/login", json={"email": "user@example.com", "password": "Sup3rSecret!"}
+    )
+    token = login_response.json()["access_token"]
+
+    response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["email"] == "user@example.com"
+    assert body["full_name"] == "Test User"
+
+
+@pytest.mark.asyncio
+async def test_me_without_token_returns_401(client, db_session):
+    response = await client.get("/api/auth/me")
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_me_with_invalid_token_returns_401(client, db_session):
+    response = await client.get("/api/auth/me", headers={"Authorization": "Bearer not-a-real-token"})
+    assert response.status_code == 401
