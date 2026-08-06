@@ -1984,7 +1984,7 @@ mkdir -p /Users/juanpablotorres/Documents/matriculacion/apps/web/src/app/feature
 
 `apps/web/src/app/features/home/home.component.ts`:
 ```typescript
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
@@ -1996,9 +1996,10 @@ import { AuthService } from '../../core/auth.service';
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements OnInit {
-  readonly currentUser$ = this.authService.currentUser$;
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  constructor(private readonly authService: AuthService, private readonly router: Router) {}
+  readonly currentUser$ = this.authService.currentUser$;
 
   ngOnInit(): void {
     this.authService.loadCurrentUser().subscribe();
@@ -2010,6 +2011,14 @@ export class HomeComponent implements OnInit {
   }
 }
 ```
+
+Note: uses `inject()` instead of constructor-parameter injection — Task 16 found that this
+repo's `tsconfig.json` (`target: ES2022`, `useDefineForClassFields` defaults to `true`) makes a
+field initializer that reads a constructor-injected property (like `currentUser$` reading
+`this.authService` here) fail to compile with `TS2729` (used before initialization), since field
+initializers run before the constructor body. `inject()`-based fields initialize in declaration
+order instead, so declaring `authService` before `currentUser$` resolves it — same pattern already
+used in `auth.guard.ts`, `auth.interceptor.ts`, and `login.component.ts`.
 
 - [ ] **Step 4: Write `home.component.html`**
 
