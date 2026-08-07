@@ -1,0 +1,60 @@
+<div class="min-h-screen bg-surface">
+  <nav class="hidden md:flex fixed left-0 top-0 h-full z-40 flex-col justify-between bg-primary w-[280px] border-r border-outline-variant">
+    <div>
+      <div class="p-md flex items-center gap-sm border-b border-outline-variant/20">
+        <div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-primary">account_balance</span>
+        </div>
+        <div>
+          <h1 class="font-display-lg text-display-lg text-on-primary">ICM Loja</h1>
+          <p class="font-body-sm text-body-sm text-on-primary/70">Sistema de Multas</p>
+        </div>
+      </div>
+      <ul class="mt-md flex flex-col gap-xs">
+        <li>
+          <a routerLink="/home" [class]="navLinkClass('dashboard')">
+            <span class="material-symbols-outlined text-[20px]">dashboard</span>
+            <span class="font-body-sm text-body-sm">Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/reportes" [class]="navLinkClass('reportes')">
+            <span class="material-symbols-outlined text-[20px]">assessment</span>
+            <span class="font-body-sm text-body-sm">Reportes</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/usuarios" [class]="navLinkClass('usuarios')">
+            <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+            <span class="font-body-sm text-body-sm">Administración de Usuarios</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="p-md border-t border-outline-variant/20">
+      <a
+        data-testid="logout-btn"
+        (click)="onLogout()"
+        class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container transition-colors duration-200 rounded-DEFAULT cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[20px]">logout</span>
+        <span class="font-body-sm text-body-sm">Cerrar Sesión</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="md:ml-[280px] flex flex-col min-h-screen">
+    <header class="flex justify-between items-center h-16 px-gutter bg-surface border-b border-outline-variant w-full sticky top-0 z-30">
+      <h2 class="font-headline-md text-headline-md text-primary font-bold">Sistema de Reportes de Multas</h2>
+      <button class="text-on-surface-variant hover:text-primary cursor-pointer opacity-90 hover:opacity-100 transition-opacity">
+        <span class="material-symbols-outlined text-[24px]">notifications</span>
+      </button>
+    </header>
+
+    <main class="flex-1 p-margin-mobile md:p-margin-desktop bg-surface">
+      <div class="max-w-[1280px] mx-auto">
+        <ng-content></ng-content>
+      </div>
+    </main>
+  </div>
+</div>
