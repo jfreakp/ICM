@@ -1,4 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
 import { UsersService } from '../../core/users.service';
 import { UserListItem } from '../../core/models/user-list-item.model';
@@ -6,21 +8,25 @@ import { UserListItem } from '../../core/models/user-list-item.model';
 @Component({
   selector: 'app-administracion-usuarios',
   standalone: true,
-  imports: [AppShellComponent],
+  imports: [AsyncPipe, AppShellComponent],
   templateUrl: './administracion-usuarios.component.html',
 })
 export class AdministracionUsuariosComponent implements OnInit {
   private readonly usersService = inject(UsersService);
 
-  usuarios: UserListItem[] = [];
+  private readonly usuariosSubject = new BehaviorSubject<UserListItem[]>([]);
+  readonly usuarios$ = this.usuariosSubject.asObservable();
 
   ngOnInit(): void {
-    this.usersService.listUsers().subscribe((usuarios) => (this.usuarios = usuarios));
+    this.usersService.listUsers().subscribe((usuarios) => this.usuariosSubject.next(usuarios));
   }
 
   resetAllowedIp(usuario: UserListItem): void {
     this.usersService.updateAllowedIp(usuario.id, null).subscribe((updated) => {
-      usuario.allowed_ip = updated.allowed_ip;
+      const usuarios = this.usuariosSubject.value.map((u) =>
+        u.id === updated.id ? { ...u, allowed_ip: updated.allowed_ip } : u
+      );
+      this.usuariosSubject.next(usuarios);
     });
   }
 
