@@ -24,8 +24,12 @@ async def get_current_user(
         payload = decode_access_token(credentials.credentials)
     except jwt.InvalidTokenError:
         raise unauthorized
-    user = await db.get(User, int(payload["sub"]))
-    if user is None:
+    try:
+        user_id = int(payload["sub"])
+    except (KeyError, ValueError):
+        raise unauthorized
+    user = await db.get(User, user_id)
+    if user is None or not user.is_active:
         raise unauthorized
     return user
 
@@ -33,7 +37,7 @@ async def get_current_user(
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     user = await db.scalar(select(User).where(User.email == payload.email))
-    if user is None or not verify_password(payload.password, user.password_hash):
+    if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
     token = create_access_token(user_id=user.id, email=user.email)
     return TokenResponse(access_token=token)

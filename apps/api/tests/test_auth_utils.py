@@ -45,3 +45,8 @@ def test_decode_access_token_rejects_expired_token():
     expired_token = jwt.encode(expired_payload, settings.jwt_secret, algorithm="HS256")
     with pytest.raises(jwt.InvalidTokenError):
         decode_access_token(expired_token)
+
+
+def test_verify_password_returns_false_for_overlong_password():
+    hashed = hash_password("short-password")
+    assert verify_password("x" * 100, hashed) is False
