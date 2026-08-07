@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Iniciar Sesión - ICM Loja</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#4f2e00",
+                        "secondary-fixed-dim": "#f8bc4b",
+                        "tertiary-fixed": "#ffddba",
+                        "on-surface": "#0d1c2e",
+                        "secondary-fixed": "#ffdeaa",
+                        "primary-fixed-dim": "#adc7f7",
+                        "surface": "#f8f9ff",
+                        "primary": "#002045",
+                        "inverse-primary": "#adc7f7",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-fixed": "#d6e3ff",
+                        "on-secondary-fixed-variant": "#5f4100",
+                        "primary-container": "#1a365d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#0d1c2e",
+                        "on-primary-container": "#86a0cd",
+                        "surface-container-high": "#dce9ff",
+                        "surface-bright": "#f8f9ff",
+                        "tertiary-fixed-dim": "#f2bc82",
+                        "outline": "#74777f",
+                        "on-surface-variant": "#43474e",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#ccdbf4",
+                        "on-secondary-container": "#725000",
+                        "inverse-surface": "#223144",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#455f88",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "outline-variant": "#c4c6cf",
+                        "secondary": "#7d5700",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#001b3c",
+                        "on-tertiary-fixed": "#2b1700",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5eeff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#c6955e",
+                        "on-secondary-fixed": "#271900",
+                        "background": "#f8f9ff",
+                        "tertiary": "#321b00",
+                        "secondary-container": "#ffc250",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "on-tertiary-fixed-variant": "#633f0f",
+                        "surface-container-highest": "#d4e4fc",
+                        "surface-variant": "#d4e4fc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "8px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "xl": "64px",
+                        "sm": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f7fafc; /* Level 0 Background */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop font-body-lg text-body-lg text-on-surface">
+<main class="w-full max-w-[440px] bg-surface-container-lowest rounded-xl border border-[#e2e8f0] shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-lg flex flex-col gap-lg">
+<!-- Header / Logo Area -->
+<div class="flex flex-col items-center text-center gap-sm">
+<div class="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="ICM Logo" class="w-full h-full object-cover" data-alt="A clean, minimalist logo for a government or institutional entity. The logo features a stylized shield or building column icon in deep navy blue (#002045) on a pure white background. The design is official, authoritative, and strictly geometric, suited for a corporate light-mode application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDgQ8qCxZ_ydOvxjsYHqoAGHEGpgBG1fByWBXBNAK7RATMPJmy8_rNe5Ah3G7InHiqHfErxrCefTI4kNprSY6695wVrOTq4uGj3Vgd5XEHGTiXTYqSt8gVcmYSpDOj8fNsCYpJ5b0O9ATeWUjkkRJj1cuQq1E6ixtWhQeJlEW7S16tqKOHvuWLZBQFuuZvTnKjBgX9IADzLdwiObXJaejcA7Qf_PpuCvvdRzrH9IKf5KtwX6uhu0Qy0A"/>
+</div>
+<div>
+<h1 class="font-display-lg text-display-lg text-primary tracking-tight">ICM Loja</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-base">Sistema de Multas</p>
+</div>
+</div>
+<!-- Login Form -->
+<form class="flex flex-col gap-md" onsubmit="event.preventDefault();">
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase bg-surface-container-lowest px-1 w-fit" for="email">Correo Electrónico</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">mail</span>
+<input class="w-full h-12 pl-10 pr-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200" id="email" name="email" placeholder="usuario@icm.gob.ec" required="" type="email"/>
+</div>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between items-center">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase bg-surface-container-lowest px-1 w-fit" for="password">Contraseña</label>
+<a class="font-body-sm text-body-sm text-primary hover:text-primary-container hover:underline transition-colors" href="#">¿Olvidó su contraseña?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">lock</span>
+<input class="w-full h-12 pl-10 pr-10 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface-variant transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<button class="mt-sm h-12 w-full bg-primary text-on-primary rounded-md font-headline-md text-headline-md hover:bg-primary-container active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm" type="submit">
+                Iniciar Sesión
+                <span class="material-symbols-outlined text-[20px]">login</span>
+</button>
+<div class="mt-xs text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+                    Acceso seguro y autorizado
+                 </p>
+</div>
+</form>
+</main>
+</body></html>
