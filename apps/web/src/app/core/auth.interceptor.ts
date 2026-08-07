@@ -4,6 +4,16 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 
+interface StructuredErrorDetail {
+  code?: string;
+  message?: string;
+}
+
+function isIpBlocked(error: HttpErrorResponse): boolean {
+  const detail = error.error?.detail as StructuredErrorDetail | undefined;
+  return error.status === 403 && detail?.code === 'ip_not_allowed';
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
@@ -14,9 +24,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       const isLoginRequest = req.url.includes('/auth/login');
-      if (error.status === 401 && !isLoginRequest) {
+      if (!isLoginRequest && error.status === 401) {
         authService.logout();
         router.navigate(['/login']);
+      } else if (!isLoginRequest && isIpBlocked(error)) {
+        authService.logout();
+        router.navigate(['/login'], { queryParams: { reason: 'ip_blocked' } });
       }
       return throwError(() => error);
     })

@@ -73,4 +73,34 @@ describe('authInterceptor', () => {
     expect(authService.logout).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
   });
+
+  it('logs out and redirects with reason=ip_blocked on a 403 ip_not_allowed response', () => {
+    authService.getToken.mockReturnValue('fake-token');
+
+    http.get('/api/auth/me').subscribe({ error: () => {} });
+
+    const req = httpMock.expectOne('/api/auth/me');
+    req.flush(
+      { detail: { code: 'ip_not_allowed', message: 'IP no autorizada' } },
+      { status: 403, statusText: 'Forbidden' }
+    );
+
+    expect(authService.logout).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/login'], { queryParams: { reason: 'ip_blocked' } });
+  });
+
+  it('does not log out on a 403 that is not an IP block (e.g. admin_required)', () => {
+    authService.getToken.mockReturnValue('fake-token');
+
+    http.get('/api/auth/users').subscribe({ error: () => {} });
+
+    const req = httpMock.expectOne('/api/auth/users');
+    req.flush(
+      { detail: { code: 'admin_required', message: 'Requiere permisos de administrador' } },
+      { status: 403, statusText: 'Forbidden' }
+    );
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });
