@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import create_access_token, decode_access_token, verify_password
 from app.database import get_db
 from app.models import User
-from app.schemas import LoginRequest, TokenResponse, UserOut
+from app.schemas import LoginRequest, TokenResponse, UpdateAllowedIpRequest, UserListItem, UserOut
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -48,6 +48,15 @@ async def get_current_user(
     return user
 
 
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "admin_required", "message": "Requiere permisos de administrador"},
+        )
+    return current_user
+
+
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     user = await db.scalar(select(User).where(User.email == payload.email))
@@ -67,3 +76,27 @@ async def login(payload: LoginRequest, request: Request, db: AsyncSession = Depe
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)) -> UserOut:
     return UserOut.model_validate(current_user)
+
+
+@router.get("/users", response_model=list[UserListItem])
+async def list_users(
+    db: AsyncSession = Depends(get_db), _admin: User = Depends(require_admin)
+) -> list[UserListItem]:
+    result = await db.scalars(select(User).order_by(User.id))
+    return [UserListItem.model_validate(u) for u in result.all()]
+
+
+@router.patch("/users/{user_id}/allowed-ip", response_model=UserListItem)
+async def update_allowed_ip(
+    user_id: int,
+    payload: UpdateAllowedIpRequest,
+    db: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin),
+) -> UserListItem:
+    user = await db.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+    user.allowed_ip = payload.allowed_ip
+    await db.commit()
+    await db.refresh(user)
+    return UserListItem.model_validate(user)
