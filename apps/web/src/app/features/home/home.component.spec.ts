@@ -12,7 +12,7 @@ describe('HomeComponent', () => {
   beforeEach(async () => {
     const authService = {
       loadCurrentUser: vi.fn().mockReturnValue(of(null)),
-      currentUser$: of<User | null>({ id: 1, email: 'a@b.com', full_name: 'Ana Pérez' }),
+      currentUser$: of<User | null>({ id: 1, email: 'a@b.com', full_name: 'Ana Pérez', is_admin: false }),
     };
 
     await TestBed.configureTestingModule({
