@@ -39,7 +39,7 @@
         </div>
       </div>
 
-      @if (errorMessage) {
+      @if (errorMessage$ | async; as errorMessage) {
         <p class="text-error text-body-sm">{{ errorMessage }}</p>
       }
 

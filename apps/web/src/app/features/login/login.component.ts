@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AsyncPipe } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 
 interface StructuredErrorDetail {
@@ -14,7 +16,7 @@ const IP_BLOCKED_MESSAGE = 'Tu usuario está vinculado a otro equipo. Contacta a
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, AsyncPipe],
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {
@@ -28,16 +30,17 @@ export class LoginComponent implements OnInit {
     password: ['', Validators.required],
   });
 
-  errorMessage: string | null = null;
+  private readonly errorMessageSubject = new BehaviorSubject<string | null>(null);
+  readonly errorMessage$ = this.errorMessageSubject.asObservable();
 
   ngOnInit(): void {
     if (this.route.snapshot.queryParamMap.get('reason') === 'ip_blocked') {
-      this.errorMessage = IP_BLOCKED_MESSAGE;
+      this.errorMessageSubject.next(IP_BLOCKED_MESSAGE);
     }
   }
 
   onSubmit(): void {
-    this.errorMessage = null;
+    this.errorMessageSubject.next(null);
     if (this.form.invalid) {
       return;
     }
@@ -47,11 +50,11 @@ export class LoginComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         const detail = err.error?.detail as string | StructuredErrorDetail | undefined;
         if (err.status === 403 && typeof detail === 'object' && detail?.code === 'ip_not_allowed') {
-          this.errorMessage = IP_BLOCKED_MESSAGE;
+          this.errorMessageSubject.next(IP_BLOCKED_MESSAGE);
         } else if (typeof detail === 'string') {
-          this.errorMessage = detail;
+          this.errorMessageSubject.next(detail);
         } else {
-          this.errorMessage = 'Error al iniciar sesión';
+          this.errorMessageSubject.next('Error al iniciar sesión');
         }
       },
     });
