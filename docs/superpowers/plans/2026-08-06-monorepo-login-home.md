@@ -3205,7 +3205,7 @@ export const routes: Routes = [
 
 Replace the full contents of `apps/web/src/app/app.config.ts` with:
 ```typescript
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
@@ -3214,12 +3214,21 @@ import { authInterceptor } from './core/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
   ],
 };
 ```
+
+Do NOT add `provideZoneChangeDetection(...)` — this Angular CLI v22 scaffold (Task 11) is
+**zoneless by default** (no `zone.js` in `package.json`, no zone.js import in `main.ts`, and the
+CLI-generated `app.config.ts` never included a zone provider). Adding
+`provideZoneChangeDetection({ eventCoalescing: true })` forces Angular to construct `NgZone`,
+which throws `NG0908: In this configuration Angular requires Zone.js` at bootstrap — this is a real
+runtime failure only visible in an actual browser (`ng test`'s `TestBed.createComponent` never
+calls `bootstrapApplication`, so unit tests pass regardless of this bug — it was caught by manual
+browser verification in Step 5, not by the test suite).
 
 (The generated file already has `provideBrowserGlobalErrorListeners()` in `providers` — keep it,
 just add `provideHttpClient(withInterceptors([authInterceptor]))` and the `authInterceptor`

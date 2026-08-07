@@ -14,10 +14,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the Tailwind verification text', async () => {
+  it('should render a router outlet', () => {
     const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
+    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('div')?.textContent).toContain('Tailwind funciona');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });
