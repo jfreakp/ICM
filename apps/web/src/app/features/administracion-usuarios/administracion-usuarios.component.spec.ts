@@ -103,4 +103,49 @@ describe('AdministracionUsuariosComponent', () => {
       expect(text).toContain('Mostrando 2 de 2 usuarios');
     });
   });
+
+  describe('error feedback', () => {
+    // Same async-timing rigor as the c4b6a2c fix: the error must arrive
+    // strictly after the first render, and the DOM update must happen
+    // through Angular's own zoneless scheduling (fixture.whenStable()),
+    // not a manual detectChanges() call - otherwise the test would pass
+    // even if the error state were wired through a plain field write.
+    it('shows an error message when listUsers fails', async () => {
+      const usuarios$ = new Subject<UserListItem[]>();
+      usersService.listUsers.mockReturnValue(usuarios$);
+
+      const localFixture = TestBed.createComponent(AdministracionUsuariosComponent);
+      localFixture.detectChanges();
+
+      expect((localFixture.nativeElement as HTMLElement).textContent ?? '').not.toContain(
+        'No tienes permisos para ver esta página.'
+      );
+
+      usuarios$.error(new Error('403 Forbidden'));
+
+      await localFixture.whenStable();
+
+      const text = (localFixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('No tienes permisos para ver esta página.');
+    });
+
+    it('shows an error message when updateAllowedIp fails', async () => {
+      const updateResult$ = new Subject<UserListItem>();
+      usersService.updateAllowedIp.mockReturnValue(updateResult$);
+
+      fixture.componentInstance.resetAllowedIp(usuarios[0]);
+      fixture.detectChanges();
+
+      expect((fixture.nativeElement as HTMLElement).textContent ?? '').not.toContain(
+        'No se pudo actualizar la IP. Intenta de nuevo.'
+      );
+
+      updateResult$.error(new Error('403 Forbidden'));
+
+      await fixture.whenStable();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('No se pudo actualizar la IP. Intenta de nuevo.');
+    });
+  });
 });

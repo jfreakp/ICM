@@ -23,12 +23,14 @@
             <span class="font-body-sm text-body-sm">Reportes</span>
           </a>
         </li>
-        <li>
-          <a routerLink="/usuarios" [class]="navLinkClass('usuarios')">
-            <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
-            <span class="font-body-sm text-body-sm">Administración de Usuarios</span>
-          </a>
-        </li>
+        @if ((currentUser$ | async)?.is_admin) {
+          <li>
+            <a routerLink="/usuarios" [class]="navLinkClass('usuarios')">
+              <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+              <span class="font-body-sm text-body-sm">Administración de Usuarios</span>
+            </a>
+          </li>
+        }
       </ul>
     </div>
     <div class="p-md border-t border-outline-variant/20">

@@ -1,4 +1,5 @@
 import { Component, inject, Input, OnInit } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 
@@ -12,7 +13,7 @@ const INACTIVE_LINK_CLASS =
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AsyncPipe],
   templateUrl: './app-shell.component.html',
 })
 export class AppShellComponent implements OnInit {
@@ -20,6 +21,8 @@ export class AppShellComponent implements OnInit {
 
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+
+  readonly currentUser$ = this.authService.currentUser$;
 
   ngOnInit(): void {
     this.authService.loadCurrentUser().subscribe();

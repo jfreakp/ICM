@@ -7,6 +7,10 @@
     </button>
   </div>
 
+  @if (error$ | async; as error) {
+    <p class="text-error text-body-sm mb-md">{{ error }}</p>
+  }
+
   <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
     <div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-bright">
       <div class="relative w-64">

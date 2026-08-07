@@ -1,17 +1,35 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { vi } from 'vitest';
 import { AppShellComponent } from './app-shell.component';
 import { AuthService } from '../../core/auth.service';
+import { User } from '../../core/models/user.model';
+
+const ADMIN_USER: User = { id: 1, email: 'admin@icmloja.gob.ec', full_name: 'Admin User', is_admin: true };
+const NON_ADMIN_USER: User = { id: 2, email: 'user@icmloja.gob.ec', full_name: 'Regular User', is_admin: false };
 
 describe('AppShellComponent', () => {
   let fixture: ComponentFixture<AppShellComponent>;
-  let authService: { logout: ReturnType<typeof vi.fn>; loadCurrentUser: ReturnType<typeof vi.fn> };
+  let authService: {
+    logout: ReturnType<typeof vi.fn>;
+    loadCurrentUser: ReturnType<typeof vi.fn>;
+    currentUser$: Observable<User | null>;
+  };
   let router: Router;
 
+  function createComponent(): void {
+    fixture = TestBed.createComponent(AppShellComponent);
+    fixture.componentInstance.activeRoute = 'dashboard';
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
-    authService = { logout: vi.fn(), loadCurrentUser: vi.fn().mockReturnValue(of(null)) };
+    authService = {
+      logout: vi.fn(),
+      loadCurrentUser: vi.fn().mockReturnValue(of(null)),
+      currentUser$: of(ADMIN_USER),
+    };
 
     await TestBed.configureTestingModule({
       imports: [AppShellComponent],
@@ -21,9 +39,7 @@ describe('AppShellComponent', () => {
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-    fixture = TestBed.createComponent(AppShellComponent);
-    fixture.componentInstance.activeRoute = 'dashboard';
-    fixture.detectChanges();
+    createComponent();
   });
 
   it('highlights the Dashboard link when activeRoute is dashboard', () => {
@@ -46,5 +62,21 @@ describe('AppShellComponent', () => {
 
   it('validates the session on init by calling loadCurrentUser', () => {
     expect(authService.loadCurrentUser).toHaveBeenCalled();
+  });
+
+  it('shows the Administración de Usuarios link when the current user is an admin', () => {
+    authService.currentUser$ = of(ADMIN_USER);
+    createComponent();
+
+    const usuariosLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector('a[href="/usuarios"]');
+    expect(usuariosLink).not.toBeNull();
+  });
+
+  it('hides the Administración de Usuarios link when the current user is not an admin', () => {
+    authService.currentUser$ = of(NON_ADMIN_USER);
+    createComponent();
+
+    const usuariosLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector('a[href="/usuarios"]');
+    expect(usuariosLink).toBeNull();
   });
 });

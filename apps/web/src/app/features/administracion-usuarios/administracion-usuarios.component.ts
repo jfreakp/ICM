@@ -17,16 +17,25 @@ export class AdministracionUsuariosComponent implements OnInit {
   private readonly usuariosSubject = new BehaviorSubject<UserListItem[]>([]);
   readonly usuarios$ = this.usuariosSubject.asObservable();
 
+  private readonly errorSubject = new BehaviorSubject<string | null>(null);
+  readonly error$ = this.errorSubject.asObservable();
+
   ngOnInit(): void {
-    this.usersService.listUsers().subscribe((usuarios) => this.usuariosSubject.next(usuarios));
+    this.usersService.listUsers().subscribe({
+      next: (usuarios) => this.usuariosSubject.next(usuarios),
+      error: () => this.errorSubject.next('No tienes permisos para ver esta página.'),
+    });
   }
 
   resetAllowedIp(usuario: UserListItem): void {
-    this.usersService.updateAllowedIp(usuario.id, null).subscribe((updated) => {
-      const usuarios = this.usuariosSubject.value.map((u) =>
-        u.id === updated.id ? { ...u, allowed_ip: updated.allowed_ip } : u
-      );
-      this.usuariosSubject.next(usuarios);
+    this.usersService.updateAllowedIp(usuario.id, null).subscribe({
+      next: (updated) => {
+        const usuarios = this.usuariosSubject.value.map((u) =>
+          u.id === updated.id ? { ...u, allowed_ip: updated.allowed_ip } : u
+        );
+        this.usuariosSubject.next(usuarios);
+      },
+      error: () => this.errorSubject.next('No se pudo actualizar la IP. Intenta de nuevo.'),
     });
   }
 
