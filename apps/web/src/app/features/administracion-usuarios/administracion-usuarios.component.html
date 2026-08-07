@@ -22,16 +22,30 @@
             <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Email</th>
             <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Rol</th>
             <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Estado</th>
+            <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">IP anclada</th>
+            <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant"></th>
           </tr>
         </thead>
         <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
-          @for (usuario of usuarios; track usuario.email) {
+          @for (usuario of usuarios; track usuario.id) {
             <tr class="hover:bg-surface-container-lowest/50 transition-colors">
-              <td class="py-3 px-md font-medium text-on-surface">{{ usuario.nombre }}</td>
+              <td class="py-3 px-md font-medium text-on-surface">{{ usuario.full_name }}</td>
               <td class="py-3 px-md text-on-surface-variant">{{ usuario.email }}</td>
-              <td class="py-3 px-md text-on-surface-variant">{{ usuario.rol }}</td>
+              <td class="py-3 px-md text-on-surface-variant">{{ rolLabel(usuario) }}</td>
               <td class="py-3 px-md">
-                <span [class]="estadoBadgeClass(usuario.estado)">{{ usuario.estado }}</span>
+                <span [class]="estadoBadgeClass(usuario)">{{ estadoLabel(usuario) }}</span>
+              </td>
+              <td class="py-3 px-md text-on-surface-variant">{{ usuario.allowed_ip ?? 'Sin anclar' }}</td>
+              <td class="py-3 px-md">
+                @if (usuario.allowed_ip) {
+                  <button
+                    type="button"
+                    (click)="resetAllowedIp(usuario)"
+                    class="text-primary hover:underline font-body-sm text-body-sm"
+                  >
+                    Resetear IP
+                  </button>
+                }
               </td>
             </tr>
           }
@@ -39,7 +53,7 @@
       </table>
     </div>
     <div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-bright">
-      <span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando {{ usuarios.length }} de 24 usuarios</span>
+      <span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando {{ usuarios.length }} de {{ usuarios.length }} usuarios</span>
     </div>
   </div>
 </app-shell>
