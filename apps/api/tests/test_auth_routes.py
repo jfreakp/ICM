@@ -112,3 +112,98 @@ async def test_me_with_inactive_user_returns_401(client, db_session):
     response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
 
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_login_auto_binds_allowed_ip_on_first_login(client, db_session):
+    user = await _create_user(db_session, email="user@example.com", password="Sup3rSecret!")
+    assert user.allowed_ip is None
+
+    response = await client.post(
+        "/api/auth/login", json={"email": "user@example.com", "password": "Sup3rSecret!"}
+    )
+
+    assert response.status_code == 200
+    await db_session.refresh(user)
+    assert user.allowed_ip == "127.0.0.1"
+
+
+@pytest.mark.asyncio
+async def test_login_rejected_when_ip_does_not_match_allowed_ip(client, db_session):
+    user = await _create_user(db_session, email="user@example.com", password="Sup3rSecret!")
+    user.allowed_ip = "10.0.0.9"
+    await db_session.commit()
+
+    response = await client.post(
+        "/api/auth/login", json={"email": "user@example.com", "password": "Sup3rSecret!"}
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "ip_not_allowed"
+
+
+@pytest.mark.asyncio
+async def test_admin_login_is_exempt_from_ip_check(client, db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    user = User(
+        email="admin@example.com",
+        password_hash=hash_password("Sup3rSecret!"),
+        full_name="Admin User",
+        is_admin=True,
+        allowed_ip="10.0.0.9",
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    response = await client.post(
+        "/api/auth/login", json={"email": "admin@example.com", "password": "Sup3rSecret!"}
+    )
+
+    assert response.status_code == 200
+    await db_session.refresh(user)
+    assert user.allowed_ip == "10.0.0.9"
+
+
+@pytest.mark.asyncio
+async def test_me_returns_403_when_ip_changed_mid_session(client, db_session):
+    from httpx import ASGITransport, AsyncClient
+    from app.main import app
+
+    await _create_user(db_session, email="user@example.com", password="Sup3rSecret!")
+    login_response = await client.post(
+        "/api/auth/login", json={"email": "user@example.com", "password": "Sup3rSecret!"}
+    )
+    token = login_response.json()["access_token"]
+
+    other_ip_client = AsyncClient(
+        transport=ASGITransport(app=app, client=("10.0.0.9", 123)), base_url="http://test"
+    )
+    async with other_ip_client as oc:
+        response = await oc.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "ip_not_allowed"
+
+
+@pytest.mark.asyncio
+async def test_me_exempts_admin_from_ip_check(client, db_session):
+    from app.auth import create_access_token, hash_password
+    from app.models import User
+
+    user = User(
+        email="admin@example.com",
+        password_hash=hash_password("Sup3rSecret!"),
+        full_name="Admin User",
+        is_admin=True,
+        allowed_ip="10.0.0.9",
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
