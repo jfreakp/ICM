@@ -1,32 +1,62 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="bg-white p-8 rounded shadow-md w-80">
-    <h1 class="text-xl font-bold mb-6">Iniciar sesión</h1>
+<div class="min-h-screen flex items-center justify-center bg-surface p-margin-mobile md:p-margin-desktop font-body-lg text-body-lg text-on-surface">
+  <main class="w-full max-w-[440px] bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-lg flex flex-col gap-lg">
+    <div class="flex flex-col items-center text-center gap-sm">
+      <div class="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+        <span class="material-symbols-outlined text-primary text-[40px]">account_balance</span>
+      </div>
+      <div>
+        <h1 class="font-display-lg text-display-lg text-primary tracking-tight">ICM Loja</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-base">Sistema de Multas</p>
+      </div>
+    </div>
 
-    <label class="block text-sm font-medium mb-1" for="email">Correo</label>
-    <input
-      id="email"
-      type="email"
-      formControlName="email"
-      class="w-full border rounded px-3 py-2 mb-4"
-    />
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-md">
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="email">Correo Electrónico</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">mail</span>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="usuario@icm.gob.ec"
+            class="w-full h-12 pl-10 pr-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200"
+          />
+        </div>
+      </div>
 
-    <label class="block text-sm font-medium mb-1" for="password">Contraseña</label>
-    <input
-      id="password"
-      type="password"
-      formControlName="password"
-      class="w-full border rounded px-3 py-2 mb-4"
-    />
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="password">Contraseña</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">lock</span>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            class="w-full h-12 pl-10 pr-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200"
+          />
+        </div>
+      </div>
 
-    @if (errorMessage) {
-      <p class="text-red-600 text-sm mb-4">{{ errorMessage }}</p>
-    }
+      @if (errorMessage) {
+        <p class="text-error text-body-sm">{{ errorMessage }}</p>
+      }
 
-    <button
-      type="submit"
-      class="w-full bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700"
-    >
-      Entrar
-    </button>
-  </form>
+      <button
+        type="submit"
+        class="mt-sm h-12 w-full bg-primary text-on-primary rounded-md font-headline-md text-headline-md hover:bg-primary-container active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
+      >
+        Iniciar Sesión
+        <span class="material-symbols-outlined text-[20px]">login</span>
+      </button>
+
+      <div class="mt-xs text-center">
+        <p class="font-body-sm text-body-sm text-on-surface-variant flex items-center justify-center gap-xs">
+          <span class="material-symbols-outlined text-[16px] text-primary">verified_user</span>
+          Acceso seguro y autorizado
+        </p>
+      </div>
+    </form>
+  </main>
 </div>
