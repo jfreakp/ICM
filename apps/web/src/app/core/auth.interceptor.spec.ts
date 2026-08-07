@@ -61,4 +61,16 @@ describe('authInterceptor', () => {
     expect(authService.logout).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
+
+  it('does not log out or redirect on a 401 from the login endpoint itself', () => {
+    authService.getToken.mockReturnValue(null);
+
+    http.post('/api/auth/login', { email: 'a@b.com', password: 'wrong' }).subscribe({ error: () => {} });
+
+    const req = httpMock.expectOne('/api/auth/login');
+    req.flush({ detail: 'Credenciales inválidas' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });

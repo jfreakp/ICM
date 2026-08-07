@@ -1,16 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { AppShellComponent } from './app-shell.component';
 import { AuthService } from '../../core/auth.service';
 
 describe('AppShellComponent', () => {
   let fixture: ComponentFixture<AppShellComponent>;
-  let authService: { logout: ReturnType<typeof vi.fn> };
+  let authService: { logout: ReturnType<typeof vi.fn>; loadCurrentUser: ReturnType<typeof vi.fn> };
   let router: Router;
 
   beforeEach(async () => {
-    authService = { logout: vi.fn() };
+    authService = { logout: vi.fn(), loadCurrentUser: vi.fn().mockReturnValue(of(null)) };
 
     await TestBed.configureTestingModule({
       imports: [AppShellComponent],
@@ -41,5 +42,9 @@ describe('AppShellComponent', () => {
 
     expect(authService.logout).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('validates the session on init by calling loadCurrentUser', () => {
+    expect(authService.loadCurrentUser).toHaveBeenCalled();
   });
 });

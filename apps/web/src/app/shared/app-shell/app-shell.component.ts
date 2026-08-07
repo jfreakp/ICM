@@ -1,4 +1,4 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 
@@ -15,11 +15,15 @@ const INACTIVE_LINK_CLASS =
   imports: [RouterLink],
   templateUrl: './app-shell.component.html',
 })
-export class AppShellComponent {
+export class AppShellComponent implements OnInit {
   @Input({ required: true }) activeRoute!: AppShellRoute;
 
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+
+  ngOnInit(): void {
+    this.authService.loadCurrentUser().subscribe();
+  }
 
   navLinkClass(route: AppShellRoute): string {
     return route === this.activeRoute ? ACTIVE_LINK_CLASS : INACTIVE_LINK_CLASS;

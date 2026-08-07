@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { AdministracionUsuariosComponent } from './administracion-usuarios.component';
 import { AuthService } from '../../core/auth.service';
@@ -12,7 +13,7 @@ describe('AdministracionUsuariosComponent', () => {
       imports: [AdministracionUsuariosComponent],
       providers: [
         provideRouter([]),
-        { provide: AuthService, useValue: { logout: vi.fn() } },
+        { provide: AuthService, useValue: { logout: vi.fn(), loadCurrentUser: vi.fn().mockReturnValue(of(null)) } },
       ],
     }).compileComponents();
 
