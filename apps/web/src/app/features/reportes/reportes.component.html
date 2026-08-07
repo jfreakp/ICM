@@ -1,0 +1,71 @@
+<app-shell activeRoute="reportes">
+  <div class="mb-lg">
+    <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-xs">Generación de Reportes de Multas</h1>
+    <p class="font-body-lg text-body-lg text-on-surface-variant">Filtre y descargue reportes detallados del sistema.</p>
+  </div>
+
+  <section class="bg-surface-container-lowest rounded-lg border border-outline-variant p-md mb-lg">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-md items-end">
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant" for="date-from">FECHA DESDE</label>
+        <input id="date-from" type="date" class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />
+      </div>
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant" for="date-to">FECHA HASTA</label>
+        <input id="date-to" type="date" class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" />
+      </div>
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant" for="status">ESTADO</label>
+        <select id="status" class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none">
+          <option value="all">Todos</option>
+          <option value="pending">Pendiente</option>
+          <option value="paid">Pagado</option>
+          <option value="void">Anulado</option>
+        </select>
+      </div>
+      <div class="flex gap-sm h-[38px]">
+        <button type="button" class="flex-1 bg-surface border border-primary text-primary font-headline-md text-body-sm rounded-DEFAULT hover:bg-surface-container transition-colors flex items-center justify-center font-semibold">
+          Filtrar
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex justify-between items-center mb-md">
+    <h3 class="font-headline-md text-headline-md text-on-surface">Resultados del Reporte</h3>
+    <button type="button" class="bg-primary text-on-primary font-headline-md text-body-sm px-md py-xs rounded-DEFAULT hover:bg-primary-container transition-colors shadow-sm flex items-center gap-xs font-semibold">
+      <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+      Descargar PDF
+    </button>
+  </div>
+
+  <div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[800px]">
+      <thead>
+        <tr class="bg-surface-container-low border-b border-outline-variant">
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">ID MULTA</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">CIUDADANO</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">FECHA</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">VALOR</th>
+          <th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">ESTADO</th>
+        </tr>
+      </thead>
+      <tbody class="font-body-sm text-body-sm text-on-surface">
+        @for (multa of multas; track multa.id) {
+          <tr class="border-b border-outline-variant/50 hover:bg-surface-container-lowest/50 transition-colors">
+            <td class="px-md py-sm font-medium">{{ multa.id }}</td>
+            <td class="px-md py-sm">{{ multa.ciudadano }}</td>
+            <td class="px-md py-sm">{{ multa.fecha }}</td>
+            <td class="px-md py-sm font-medium">{{ multa.valor }}</td>
+            <td class="px-md py-sm">
+              <span [class]="estadoBadgeClass(multa.estado)">{{ multa.estado }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <div class="px-md py-sm border-t border-outline-variant flex items-center justify-between bg-surface">
+      <span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando 1 a {{ multas.length }} de 142 registros</span>
+    </div>
+  </div>
+</app-shell>
