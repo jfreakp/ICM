@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -33,3 +35,26 @@ class UserListItem(BaseModel):
 
 class UpdateAllowedIpRequest(BaseModel):
     allowed_ip: str | None
+
+
+class ImpugnacionItem(BaseModel):
+    id: int
+    registro: str | None
+    fecha_registro: datetime | None
+    fecha_acta: datetime | None
+    estado: str | None
+    codigo_infraccion_axis: str | None
+    contravencion: str | None
+    tipo_acta: str | None
+    articulo_original: str | None
+    monto_capital_original: float | None
+    observacion: str | None
+
+    model_config = {"from_attributes": True}
+
+
+class ImpugnacionListResponse(BaseModel):
+    items: list[ImpugnacionItem]
+    total: int
+    page: int
+    page_size: int

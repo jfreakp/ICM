@@ -96,3 +96,137 @@ async def test_estados_returns_distinct_values(client, db_session):
 async def test_estados_without_token_returns_401(client, db_session):
     response = await client.get("/api/reportes/impugnaciones/estados")
     assert response.status_code == 401
+
+
+from datetime import timedelta
+
+
+@pytest.mark.asyncio
+async def test_list_returns_items_within_range(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_impugnaciones(
+        db_session,
+        [
+            _row("TEST-101", datetime(2031, 6, 5), estado="A", observacion="Primera"),
+            _row("TEST-102", datetime(2031, 6, 15), estado="A", observacion="Segunda"),
+            _row("TEST-103", datetime(2031, 6, 25), estado="A", observacion="Tercera"),
+        ],
+    )
+
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 3
+    assert body["page"] == 1
+    assert body["page_size"] == 50
+    registros = [item["registro"] for item in body["items"]]
+    assert registros == ["TEST-103", "TEST-102", "TEST-101"]
+    first = body["items"][0]
+    assert first["estado"] == "A"
+    assert first["monto_capital_original"] == 100.0
+    assert first["observacion"] == "Tercera"
+
+
+@pytest.mark.asyncio
+async def test_list_rejects_range_crossing_month(client, db_session):
+    headers = await _auth_headers(client, db_session)
+
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2024-06-15", "fecha_hasta": "2024-07-05"},
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_list_rejects_desde_after_hasta(client, db_session):
+    headers = await _auth_headers(client, db_session)
+
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2024-06-20", "fecha_hasta": "2024-06-10"},
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_list_filters_by_estado(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_impugnaciones(
+        db_session,
+        [
+            _row("TEST-201", datetime(2031, 6, 5), estado="A"),
+            _row("TEST-202", datetime(2031, 6, 6), estado="B"),
+        ],
+    )
+
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30", "estado": "B"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["registro"] == "TEST-202"
+
+
+@pytest.mark.asyncio
+async def test_list_pagination_page_two_offset(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    base = datetime(2031, 5, 1)
+    rows = [
+        _row(f"TEST-p-{i:03d}", base + timedelta(minutes=30 * i), estado="A")
+        for i in range(55)
+    ]
+    await _seed_impugnaciones(db_session, rows)
+
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2031-05-01", "fecha_hasta": "2031-05-31", "page": 2},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 55
+    assert body["page"] == 2
+    assert len(body["items"]) == 5
+    assert body["items"][0]["registro"] == "TEST-p-004"
+    assert body["items"][-1]["registro"] == "TEST-p-000"
+
+
+@pytest.mark.asyncio
+async def test_list_out_of_range_page_returns_empty(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_impugnaciones(db_session, [_row("TEST-301", datetime(2031, 6, 5))])
+
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30", "page": 5},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["items"] == []
+    assert body["total"] == 1
+
+
+@pytest.mark.asyncio
+async def test_list_without_token_returns_401(client, db_session):
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2024-06-01", "fecha_hasta": "2024-06-30"},
+    )
+    assert response.status_code == 401
