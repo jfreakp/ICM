@@ -230,3 +230,71 @@ async def test_list_without_token_returns_401(client, db_session):
         params={"fecha_desde": "2024-06-01", "fecha_hasta": "2024-06-30"},
     )
     assert response.status_code == 401
+
+
+import io
+
+from openpyxl import load_workbook
+
+
+@pytest.mark.asyncio
+async def test_export_csv_returns_all_matching_rows(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    base = datetime(2031, 8, 1)
+    rows = [
+        _row(f"TEST-e-{i:03d}", base + timedelta(minutes=30 * i), estado="A")
+        for i in range(55)
+    ]
+    await _seed_impugnaciones(db_session, rows)
+
+    response = await client.get(
+        "/api/reportes/impugnaciones/export",
+        params={"fecha_desde": "2031-08-01", "fecha_hasta": "2031-08-31", "formato": "csv"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert "impugnaciones_2031-08-01_2031-08-31.csv" in response.headers["content-disposition"]
+
+    text = response.content.decode("utf-8-sig")
+    lines = [line for line in text.splitlines() if line]
+    assert lines[0].split(",")[0] == "Registro"
+    assert len(lines) - 1 == 55
+
+
+@pytest.mark.asyncio
+async def test_export_xlsx_returns_all_matching_rows(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    base = datetime(2031, 9, 1)
+    rows = [
+        _row(f"TEST-x-{i:03d}", base + timedelta(minutes=30 * i), estado="A")
+        for i in range(55)
+    ]
+    await _seed_impugnaciones(db_session, rows)
+
+    response = await client.get(
+        "/api/reportes/impugnaciones/export",
+        params={"fecha_desde": "2031-09-01", "fecha_hasta": "2031-09-30", "formato": "xlsx"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    assert "impugnaciones_2031-09-01_2031-09-30.xlsx" in response.headers["content-disposition"]
+
+    workbook = load_workbook(io.BytesIO(response.content))
+    sheet = workbook.active
+    assert sheet.cell(row=1, column=1).value == "Registro"
+    assert sheet.max_row - 1 == 55
+
+
+@pytest.mark.asyncio
+async def test_export_without_token_returns_401(client, db_session):
+    response = await client.get(
+        "/api/reportes/impugnaciones/export",
+        params={"fecha_desde": "2024-06-01", "fecha_hasta": "2024-06-30", "formato": "csv"},
+    )
+    assert response.status_code == 401

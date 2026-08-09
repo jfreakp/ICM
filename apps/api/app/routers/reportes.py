@@ -1,6 +1,11 @@
-from datetime import date
+import csv
+import io
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from openpyxl import Workbook
 from sqlalchemy import Date, and_, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -89,3 +94,73 @@ async def list_impugnaciones(
     rows = (await db.execute(stmt)).mappings().all()
     items = [ImpugnacionItem(**row) for row in rows]
     return ImpugnacionListResponse(items=items, total=total or 0, page=page, page_size=PAGE_SIZE)
+
+
+COLUMN_HEADERS: dict[str, str] = {
+    "registro": "Registro",
+    "fecha_registro": "Fecha de Registro",
+    "fecha_acta": "Fecha de Acta",
+    "estado": "Estado",
+    "codigo_infraccion_axis": "Código de Infracción AXIS",
+    "contravencion": "Contravención",
+    "tipo_acta": "Tipo de Acta",
+    "articulo_original": "Artículo Original",
+    "monto_capital_original": "Monto Capital Original",
+    "observacion": "Observación",
+}
+
+
+def _export_value(value):
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
+    return value
+
+
+@router.get("/impugnaciones/export")
+async def export_impugnaciones(
+    fecha_desde: date,
+    fecha_hasta: date,
+    formato: Literal["csv", "xlsx"],
+    estado: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+) -> Response:
+    _validate_date_range(fecha_desde, fecha_hasta)
+    conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
+
+    columns = [axis_impugnaciones.c[name] for name in COLUMN_NAMES]
+    stmt = (
+        select(*columns)
+        .where(and_(*conditions))
+        .order_by(axis_impugnaciones.c.fecha_registro.desc(), axis_impugnaciones.c.id.desc())
+    )
+    rows = (await db.execute(stmt)).mappings().all()
+    filename = f"impugnaciones_{fecha_desde.isoformat()}_{fecha_hasta.isoformat()}.{formato}"
+
+    if formato == "csv":
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(list(COLUMN_HEADERS.values()))
+        for row in rows:
+            writer.writerow([_export_value(row[name]) for name in COLUMN_NAMES])
+        content = "﻿" + buffer.getvalue()
+        return Response(
+            content=content,
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.append(list(COLUMN_HEADERS.values()))
+    for row in rows:
+        sheet.append([_export_value(row[name]) for name in COLUMN_NAMES])
+    xlsx_buffer = io.BytesIO()
+    workbook.save(xlsx_buffer)
+    return Response(
+        content=xlsx_buffer.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
