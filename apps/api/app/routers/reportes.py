@@ -19,18 +19,19 @@ router = APIRouter(prefix="/api/reportes", tags=["reportes"])
 
 PAGE_SIZE = 50
 
-COLUMN_NAMES = [
-    "registro",
-    "fecha_registro",
-    "fecha_acta",
-    "estado",
-    "codigo_infraccion_axis",
-    "contravencion",
-    "tipo_acta",
-    "articulo_original",
-    "monto_capital_original",
-    "observacion",
-]
+COLUMN_HEADERS: dict[str, str] = {
+    "registro": "Registro",
+    "fecha_registro": "Fecha de Registro",
+    "fecha_acta": "Fecha de Acta",
+    "estado": "Estado",
+    "codigo_infraccion_axis": "Código de Infracción AXIS",
+    "contravencion": "Contravención",
+    "tipo_acta": "Tipo de Acta",
+    "articulo_original": "Artículo Original",
+    "monto_capital_original": "Monto Capital Original",
+    "observacion": "Observación",
+}
+COLUMN_NAMES = list(COLUMN_HEADERS)
 
 
 def _validate_date_range(fecha_desde: date, fecha_hasta: date) -> None:
@@ -94,20 +95,6 @@ async def list_impugnaciones(
     rows = (await db.execute(stmt)).mappings().all()
     items = [ImpugnacionItem(**row) for row in rows]
     return ImpugnacionListResponse(items=items, total=total or 0, page=page, page_size=PAGE_SIZE)
-
-
-COLUMN_HEADERS: dict[str, str] = {
-    "registro": "Registro",
-    "fecha_registro": "Fecha de Registro",
-    "fecha_acta": "Fecha de Acta",
-    "estado": "Estado",
-    "codigo_infraccion_axis": "Código de Infracción AXIS",
-    "contravencion": "Contravención",
-    "tipo_acta": "Tipo de Acta",
-    "articulo_original": "Artículo Original",
-    "monto_capital_original": "Monto Capital Original",
-    "observacion": "Observación",
-}
 
 
 def _export_value(value):

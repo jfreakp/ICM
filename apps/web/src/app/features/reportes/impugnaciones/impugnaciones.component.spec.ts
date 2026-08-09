@@ -55,6 +55,19 @@ describe('ImpugnacionesComponent', () => {
     fixture.detectChanges();
   }
 
+  const EXPECTED_HEADERS = [
+    'Registro',
+    'Fecha de Registro',
+    'Fecha de Acta',
+    'Estado',
+    'Código de Infracción AXIS',
+    'Contravención',
+    'Tipo de Acta',
+    'Artículo Original',
+    'Monto Capital Original',
+    'Observación',
+  ];
+
   beforeEach(async () => {
     impugnacionesService = {
       getEstados: vi.fn().mockReturnValue(of(['A', 'B'])),
@@ -123,6 +136,10 @@ describe('ImpugnacionesComponent', () => {
       expect(text).not.toContain('Cargando...');
       expect(text).toContain('REG-1');
       expect(fixture.nativeElement.querySelectorAll('tbody tr').length).toBe(1);
+
+      const headerCells: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('thead th');
+      const headerTexts = Array.from(headerCells).map((th) => th.textContent?.trim());
+      expect(headerTexts).toEqual(EXPECTED_HEADERS);
     });
 
     it('shows the empty state message when there are no results', async () => {

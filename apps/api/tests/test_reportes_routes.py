@@ -232,9 +232,23 @@ async def test_list_without_token_returns_401(client, db_session):
     assert response.status_code == 401
 
 
+import csv
 import io
 
 from openpyxl import load_workbook
+
+EXPECTED_HEADERS = [
+    "Registro",
+    "Fecha de Registro",
+    "Fecha de Acta",
+    "Estado",
+    "Código de Infracción AXIS",
+    "Contravención",
+    "Tipo de Acta",
+    "Artículo Original",
+    "Monto Capital Original",
+    "Observación",
+]
 
 
 @pytest.mark.asyncio
@@ -259,8 +273,15 @@ async def test_export_csv_returns_all_matching_rows(client, db_session):
 
     text = response.content.decode("utf-8-sig")
     lines = [line for line in text.splitlines() if line]
-    assert lines[0].split(",")[0] == "Registro"
+    reader = csv.reader(lines)
+    parsed_rows = list(reader)
+    assert parsed_rows[0] == EXPECTED_HEADERS
     assert len(lines) - 1 == 55
+
+    data_row = parsed_rows[1]
+    assert len(data_row) == 10
+    assert data_row[3] == "A"
+    assert data_row[0].startswith("TEST-e-")
 
 
 @pytest.mark.asyncio
@@ -287,8 +308,13 @@ async def test_export_xlsx_returns_all_matching_rows(client, db_session):
 
     workbook = load_workbook(io.BytesIO(response.content))
     sheet = workbook.active
-    assert sheet.cell(row=1, column=1).value == "Registro"
+    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 11)]
+    assert header_row == EXPECTED_HEADERS
     assert sheet.max_row - 1 == 55
+
+    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 11)]
+    assert data_row[3] == "A"
+    assert data_row[0].startswith("TEST-x-")
 
 
 @pytest.mark.asyncio
