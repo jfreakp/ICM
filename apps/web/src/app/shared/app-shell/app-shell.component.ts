@@ -3,7 +3,7 @@ import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 
-export type AppShellRoute = 'dashboard' | 'reportes' | 'usuarios';
+export type AppShellRoute = 'dashboard' | 'impugnaciones' | 'usuarios';
 
 const ACTIVE_LINK_CLASS =
   'flex items-center gap-sm px-md py-sm text-secondary-fixed-dim border-l-4 border-secondary-fixed font-bold transition-colors duration-200';
@@ -24,8 +24,17 @@ export class AppShellComponent implements OnInit {
 
   readonly currentUser$ = this.authService.currentUser$;
 
+  reportesExpanded = false;
+
   ngOnInit(): void {
     this.authService.loadCurrentUser().subscribe();
+    if (this.activeRoute === 'impugnaciones') {
+      this.reportesExpanded = true;
+    }
+  }
+
+  toggleReportes(): void {
+    this.reportesExpanded = !this.reportesExpanded;
   }
 
   navLinkClass(route: AppShellRoute): string {

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { vi } from 'vitest';
-import { AppShellComponent } from './app-shell.component';
+import { AppShellComponent, AppShellRoute } from './app-shell.component';
 import { AuthService } from '../../core/auth.service';
 import { User } from '../../core/models/user.model';
 
@@ -18,9 +18,9 @@ describe('AppShellComponent', () => {
   };
   let router: Router;
 
-  function createComponent(): void {
+  function createComponent(activeRoute: AppShellRoute = 'dashboard'): void {
     fixture = TestBed.createComponent(AppShellComponent);
-    fixture.componentInstance.activeRoute = 'dashboard';
+    fixture.componentInstance.activeRoute = activeRoute;
     fixture.detectChanges();
   }
 
@@ -45,11 +45,6 @@ describe('AppShellComponent', () => {
   it('highlights the Dashboard link when activeRoute is dashboard', () => {
     const dashboardLink: HTMLAnchorElement = fixture.nativeElement.querySelector('a[href="/home"]');
     expect(dashboardLink.classList.contains('text-secondary-fixed-dim')).toBe(true);
-  });
-
-  it('does not highlight Reportes when activeRoute is dashboard', () => {
-    const reportesLink: HTMLAnchorElement = fixture.nativeElement.querySelector('a[href="/reportes"]');
-    expect(reportesLink.classList.contains('text-secondary-fixed-dim')).toBe(false);
   });
 
   it('logs out and navigates to /login when the logout link is clicked', () => {
@@ -78,5 +73,35 @@ describe('AppShellComponent', () => {
 
     const usuariosLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector('a[href="/usuarios"]');
     expect(usuariosLink).toBeNull();
+  });
+
+  describe('submenu de Reportes', () => {
+    it('collapses the Reportes submenu by default when activeRoute is dashboard', () => {
+      const impugnacionesLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/impugnaciones"]'
+      );
+      expect(impugnacionesLink).toBeNull();
+    });
+
+    it('expands the Reportes submenu when the toggle is clicked', () => {
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="reportes-toggle"]');
+      toggle.click();
+      fixture.detectChanges();
+
+      const impugnacionesLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/impugnaciones"]'
+      );
+      expect(impugnacionesLink).not.toBeNull();
+    });
+
+    it('auto-expands and highlights Impugnaciones when activeRoute is impugnaciones', () => {
+      createComponent('impugnaciones');
+
+      const impugnacionesLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/impugnaciones"]'
+      );
+      expect(impugnacionesLink).not.toBeNull();
+      expect(impugnacionesLink!.classList.contains('text-secondary-fixed-dim')).toBe(true);
+    });
   });
 });

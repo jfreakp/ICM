@@ -18,10 +18,27 @@
           </a>
         </li>
         <li>
-          <a routerLink="/reportes" [class]="navLinkClass('reportes')">
-            <span class="material-symbols-outlined text-[20px]">assessment</span>
-            <span class="font-body-sm text-body-sm">Reportes</span>
-          </a>
+          <button
+            type="button"
+            data-testid="reportes-toggle"
+            (click)="toggleReportes()"
+            class="w-full flex items-center justify-between gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container transition-colors duration-200"
+          >
+            <span class="flex items-center gap-sm">
+              <span class="material-symbols-outlined text-[20px]">assessment</span>
+              <span class="font-body-sm text-body-sm">Reportes</span>
+            </span>
+            <span class="material-symbols-outlined text-[18px]">{{ reportesExpanded ? 'expand_less' : 'expand_more' }}</span>
+          </button>
+          @if (reportesExpanded) {
+            <ul class="flex flex-col gap-xs">
+              <li class="pl-xl">
+                <a routerLink="/reportes/impugnaciones" [class]="navLinkClass('impugnaciones')">
+                  <span class="font-body-sm text-body-sm">Impugnaciones</span>
+                </a>
+              </li>
+            </ul>
+          }
         </li>
         @if ((currentUser$ | async)?.is_admin) {
           <li>
