@@ -13,6 +13,7 @@ describe('ImpugnacionesComponent', () => {
   let impugnacionesService: {
     getEstados: ReturnType<typeof vi.fn>;
     listImpugnaciones: ReturnType<typeof vi.fn>;
+    exportImpugnaciones: ReturnType<typeof vi.fn>;
   };
 
   const resultado: ImpugnacionListResponse = {
@@ -58,6 +59,7 @@ describe('ImpugnacionesComponent', () => {
     impugnacionesService = {
       getEstados: vi.fn().mockReturnValue(of(['A', 'B'])),
       listImpugnaciones: vi.fn().mockReturnValue(of(resultado)),
+      exportImpugnaciones: vi.fn().mockReturnValue(of(new Blob(['data']))),
     };
 
     await TestBed.configureTestingModule({
@@ -173,5 +175,52 @@ describe('ImpugnacionesComponent', () => {
       { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null },
       2
     );
+  });
+
+  describe('descargas', () => {
+    beforeEach(() => {
+      URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
+      URL.revokeObjectURL = vi.fn();
+    });
+
+    it('descarga CSV con los filtros vigentes', () => {
+      fillForm('2024-06-01', '2024-06-30');
+      submitForm();
+
+      const csvButton: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="descargar-csv"]');
+      csvButton.click();
+
+      expect(impugnacionesService.exportImpugnaciones).toHaveBeenCalledWith(
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null },
+        'csv'
+      );
+    });
+
+    it('descarga Excel con los filtros vigentes', () => {
+      fillForm('2024-06-01', '2024-06-30');
+      submitForm();
+
+      const excelButton: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="descargar-excel"]');
+      excelButton.click();
+
+      expect(impugnacionesService.exportImpugnaciones).toHaveBeenCalledWith(
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null },
+        'xlsx'
+      );
+    });
+
+    it('disables the download buttons when there are no results', () => {
+      impugnacionesService.listImpugnaciones.mockReturnValue(
+        of({ items: [], total: 0, page: 1, page_size: 50 })
+      );
+
+      fillForm('2024-06-01', '2024-06-30');
+      submitForm();
+
+      const csvButton: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="descargar-csv"]');
+      const excelButton: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="descargar-excel"]');
+      expect(csvButton.disabled).toBe(true);
+      expect(excelButton.disabled).toBe(true);
+    });
   });
 });

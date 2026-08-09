@@ -90,6 +90,27 @@ export class ImpugnacionesComponent implements OnInit {
     this.cargarPagina(page);
   }
 
+  descargar(formato: 'csv' | 'xlsx'): void {
+    if (!this.filtrosVigentes) {
+      return;
+    }
+    const filtros = this.filtrosVigentes;
+    this.impugnacionesService.exportImpugnaciones(filtros, formato).subscribe({
+      next: (blob) => this.disparaDescarga(blob, filtros, formato),
+      error: () => this.errorSubject.next('No se pudo descargar el archivo. Intenta de nuevo.'),
+    });
+  }
+
+  private disparaDescarga(blob: Blob, filtros: ImpugnacionFilters, formato: 'csv' | 'xlsx'): void {
+    const filename = `impugnaciones_${filtros.fecha_desde}_${filtros.fecha_hasta}.${formato}`;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   private cargarPagina(page: number): void {
     if (!this.filtrosVigentes) {
       return;

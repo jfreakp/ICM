@@ -37,6 +37,10 @@
     <p class="text-on-surface-variant text-body-sm">Cargando...</p>
   } @else if (resultado$ | async; as resultado) {
     <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+      <div class="p-md border-b border-outline-variant flex justify-end gap-sm bg-surface-bright">
+        <button type="button" data-testid="descargar-csv" [disabled]="resultado.total === 0" (click)="descargar('csv')" class="text-primary hover:underline font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline">Descargar CSV</button>
+        <button type="button" data-testid="descargar-excel" [disabled]="resultado.total === 0" (click)="descargar('xlsx')" class="text-primary hover:underline font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline">Descargar Excel</button>
+      </div>
       @if (resultado.total === 0) {
         <p class="p-md text-on-surface-variant text-body-sm">No hay impugnaciones para estos filtros</p>
       } @else {
