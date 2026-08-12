@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { AppShellComponent } from '../../shared/app-shell/app-shell.component';
@@ -24,7 +24,7 @@ const EMPTY_FILTERS: AuditLogFilters = { desde: null, hasta: null, accion: null,
 @Component({
   selector: 'app-auditoria',
   standalone: true,
-  imports: [AsyncPipe, ReactiveFormsModule, AppShellComponent],
+  imports: [AsyncPipe, DatePipe, ReactiveFormsModule, AppShellComponent],
   templateUrl: './auditoria.component.html',
 })
 export class AuditoriaComponent implements OnInit {
@@ -103,6 +103,7 @@ export class AuditoriaComponent implements OnInit {
         this.loadingSubject.next(false);
       },
       error: (err) => {
+        this.resultadoSubject.next(null);
         this.errorSubject.next(err?.status === 403 ? FORBIDDEN_MESSAGE : LOAD_ERROR_MESSAGE);
         this.loadingSubject.next(false);
       },

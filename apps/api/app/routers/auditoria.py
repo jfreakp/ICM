@@ -1,7 +1,8 @@
-from datetime import date
+from datetime import date, datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import Date, cast, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -13,15 +14,19 @@ router = APIRouter(prefix="/api/auditoria", tags=["auditoria"])
 
 PAGE_SIZE = 50
 
+LOCAL_TZ = ZoneInfo("America/Guayaquil")
+
 
 def _filter_conditions(
     desde: date | None, hasta: date | None, accion: str | None, usuario_email: str | None
 ):
     conditions = []
     if desde is not None:
-        conditions.append(cast(AuditLog.occurred_at, Date) >= desde)
+        conditions.append(AuditLog.occurred_at >= datetime.combine(desde, time.min, tzinfo=LOCAL_TZ))
     if hasta is not None:
-        conditions.append(cast(AuditLog.occurred_at, Date) <= hasta)
+        conditions.append(
+            AuditLog.occurred_at < datetime.combine(hasta, time.min, tzinfo=LOCAL_TZ) + timedelta(days=1)
+        )
     if accion is not None:
         conditions.append(AuditLog.action == accion)
     if usuario_email is not None:

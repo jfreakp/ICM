@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 import pytest_asyncio
@@ -7,6 +8,8 @@ from sqlalchemy import select, text
 from app.audit import registrar_evento
 from app.auth import create_access_token, hash_password
 from app.models import AuditLog, User
+
+LOCAL_TZ = ZoneInfo("America/Guayaquil")
 
 
 async def _create_user(db_session, email="user@example.com", password="Sup3rSecret!", **overrides):
@@ -326,3 +329,73 @@ async def test_list_auditoria_out_of_range_page_returns_empty(client, db_session
     body = response.json()
     assert body["items"] == []
     assert body["total"] == 1
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_filters_by_date_range_respects_local_timezone(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    # 23:30 local time on Aug 12 is 04:30 UTC on Aug 13 -- the exact case that
+    # broke under `cast(occurred_at, Date)` against a UTC-configured server.
+    late_evening_local = datetime(2031, 8, 12, 23, 30, tzinfo=LOCAL_TZ)
+    db_session.add(
+        AuditLog(
+            user_id=None,
+            user_email="late@example.com",
+            action="auth.login_success",
+            occurred_at=late_evening_local,
+        )
+    )
+    early_next_day_local = datetime(2031, 8, 13, 0, 30, tzinfo=LOCAL_TZ)
+    db_session.add(
+        AuditLog(
+            user_id=None,
+            user_email="early@example.com",
+            action="auth.login_success",
+            occurred_at=early_next_day_local,
+        )
+    )
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/auditoria",
+        params={"desde": "2031-08-12", "hasta": "2031-08-12"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    emails = [item["user_email"] for item in body["items"]]
+    assert "late@example.com" in emails
+    assert "early@example.com" not in emails
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_pagination_page_two_offset(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    base = datetime(2031, 9, 1, tzinfo=LOCAL_TZ)
+    for i in range(55):
+        db_session.add(
+            AuditLog(
+                user_id=None,
+                user_email=f"user-{i:03d}@example.com",
+                action="auth.login_failed",
+                occurred_at=base + timedelta(minutes=30 * i),
+            )
+        )
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/auditoria",
+        params={"page": 2},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 55
+    assert body["page"] == 2
+    assert len(body["items"]) == 5
+    assert body["items"][0]["user_email"] == "user-004@example.com"
+    assert body["items"][-1]["user_email"] == "user-000@example.com"

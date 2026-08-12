@@ -63,6 +63,13 @@ describe('AuditoriaComponent', () => {
     expect(text).toContain('Inicio de sesión exitoso');
   });
 
+  it('renders occurred_at converted to Ecuador local time instead of the raw UTC string', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    // '2026-08-12T10:00:00Z' (UTC) is 05:00 local time (UTC-5).
+    expect(text).toContain('12/08/2026 05:00:00');
+    expect(text).not.toContain('2026-08-12T10:00:00Z');
+  });
+
   it('submits the current filters and reloads page 1', () => {
     fixture.componentInstance.form.setValue({
       desde: '2026-08-01',
@@ -117,6 +124,28 @@ describe('AuditoriaComponent', () => {
 
       const text = (localFixture.nativeElement as HTMLElement).textContent ?? '';
       expect(text).toContain('No tienes permisos para ver esta página.');
+    });
+
+    it('clears a previously rendered table when a reload fails', async () => {
+      const primera$ = new Subject<AuditLogListResponse>();
+      auditoriaService.listEventos.mockReturnValue(primera$);
+
+      const localFixture = TestBed.createComponent(AuditoriaComponent);
+      localFixture.detectChanges();
+      primera$.next(respuesta);
+      await localFixture.whenStable();
+
+      expect((localFixture.nativeElement as HTMLElement).textContent ?? '').toContain('ana@icmloja.gob.ec');
+
+      const segunda$ = new Subject<AuditLogListResponse>();
+      auditoriaService.listEventos.mockReturnValue(segunda$);
+      localFixture.componentInstance.cambiarPagina(2);
+      segunda$.error(new HttpErrorResponse({ status: 500 }));
+      await localFixture.whenStable();
+
+      const text = (localFixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).not.toContain('ana@icmloja.gob.ec');
+      expect(text).toContain('No se pudieron cargar los eventos de auditoría. Intenta de nuevo.');
     });
 
     it('shows the empty state message when there are no results', async () => {
