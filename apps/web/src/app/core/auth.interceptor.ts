@@ -24,10 +24,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       const isLoginRequest = req.url.includes('/auth/login');
-      if (!isLoginRequest && error.status === 401) {
+      const isLogoutRequest = req.url.includes('/auth/logout');
+      if (!isLoginRequest && !isLogoutRequest && error.status === 401) {
         authService.logout();
         router.navigate(['/login']);
-      } else if (!isLoginRequest && isIpBlocked(error)) {
+      } else if (!isLoginRequest && !isLogoutRequest && isIpBlocked(error)) {
         authService.logout();
         router.navigate(['/login'], { queryParams: { reason: 'ip_blocked' } });
       }

@@ -103,4 +103,16 @@ describe('authInterceptor', () => {
     expect(authService.logout).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
   });
+
+  it('does not log out or redirect on a 401 from the logout endpoint itself', () => {
+    authService.getToken.mockReturnValue('fake-token');
+
+    http.post('/api/auth/logout', {}).subscribe({ error: () => {} });
+
+    const req = httpMock.expectOne('/api/auth/logout');
+    req.flush({ detail: 'No autenticado' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });
