@@ -75,6 +75,22 @@ describe('AppShellComponent', () => {
     expect(usuariosLink).toBeNull();
   });
 
+  it('shows the Auditoría link when the current user is an admin', () => {
+    authService.currentUser$ = of(ADMIN_USER);
+    createComponent();
+
+    const auditoriaLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector('a[href="/auditoria"]');
+    expect(auditoriaLink).not.toBeNull();
+  });
+
+  it('hides the Auditoría link when the current user is not an admin', () => {
+    authService.currentUser$ = of(NON_ADMIN_USER);
+    createComponent();
+
+    const auditoriaLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector('a[href="/auditoria"]');
+    expect(auditoriaLink).toBeNull();
+  });
+
   describe('submenu de Reportes', () => {
     it('collapses the Reportes submenu by default when activeRoute is dashboard', () => {
       const impugnacionesLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
