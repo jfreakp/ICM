@@ -128,13 +128,27 @@ async def list_users(
 async def update_allowed_ip(
     user_id: int,
     payload: UpdateAllowedIpRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin),
 ) -> UserListItem:
     user = await db.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+    ip_anterior = user.allowed_ip
     user.allowed_ip = payload.allowed_ip
+    await registrar_evento(
+        db,
+        user_id=admin.id,
+        user_email=admin.email,
+        action="usuarios.update_allowed_ip",
+        ip_address=get_client_ip(request),
+        details={
+            "usuario_objetivo_id": user.id,
+            "ip_anterior": ip_anterior,
+            "ip_nueva": payload.allowed_ip,
+        },
+    )
     await db.commit()
     await db.refresh(user)
     return UserListItem.model_validate(user)

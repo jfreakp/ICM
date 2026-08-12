@@ -206,3 +206,28 @@ async def test_export_creates_audit_event_with_row_count(client, db_session):
     assert log is not None
     assert log.details["formato"] == "csv"
     assert log.details["filas_exportadas"] == 1
+
+
+@pytest.mark.asyncio
+async def test_update_allowed_ip_creates_audit_event_with_old_and_new_ip(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    target = await _create_user(db_session, email="target@example.com", password="Sup3rSecret!")
+    target.allowed_ip = "10.0.0.9"
+    await db_session.commit()
+
+    response = await client.patch(
+        f"/api/auth/users/{target.id}/allowed-ip",
+        json={"allowed_ip": "10.0.0.55"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    log = await _last_audit_log(db_session, "usuarios.update_allowed_ip")
+    assert log is not None
+    assert log.user_email == admin.email
+    assert log.details == {
+        "usuario_objetivo_id": target.id,
+        "ip_anterior": "10.0.0.9",
+        "ip_nueva": "10.0.0.55",
+    }
