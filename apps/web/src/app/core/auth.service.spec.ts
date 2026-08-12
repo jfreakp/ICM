@@ -43,11 +43,28 @@ describe('AuthService', () => {
     expect(localStorage.getItem('access_token')).toBe('fake-token');
   });
 
-  it('clears the token and emits null on logout', () => {
+  it('calls the logout endpoint and clears the token on logout', () => {
     localStorage.setItem('access_token', 'fake-token');
+
     service.logout();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/auth/logout`);
+    expect(req.request.method).toBe('POST');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+
     expect(localStorage.getItem('access_token')).toBeNull();
     expect(service.isAuthenticated()).toBe(false);
+  });
+
+  it('still clears the token locally even if the logout call fails', () => {
+    localStorage.setItem('access_token', 'fake-token');
+
+    service.logout();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/auth/logout`);
+    req.flush({ detail: 'error' }, { status: 500, statusText: 'Server Error' });
+
+    expect(localStorage.getItem('access_token')).toBeNull();
   });
 
   it('isAuthenticated reflects presence of a stored token', () => {
