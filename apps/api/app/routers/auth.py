@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.audit import registrar_evento
 from app.auth import create_access_token, decode_access_token, verify_password
 from app.database import get_db
 from app.models import User
@@ -59,17 +60,37 @@ async def require_admin(current_user: User = Depends(get_current_user)) -> User:
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+    client_ip = get_client_ip(request)
     user = await db.scalar(select(User).where(User.email == payload.email))
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
+        await registrar_evento(
+            db,
+            user_id=user.id if user is not None else None,
+            user_email=payload.email,
+            action="auth.login_failed",
+            ip_address=client_ip,
+        )
+        await db.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
     if not user.is_admin:
-        client_ip = get_client_ip(request)
         if user.allowed_ip is None:
             user.allowed_ip = client_ip
-            await db.commit()
         elif user.allowed_ip != client_ip:
+            await registrar_evento(
+                db,
+                user_id=user.id,
+                user_email=user.email,
+                action="auth.login_blocked_ip",
+                ip_address=client_ip,
+                details={"ip_esperada": user.allowed_ip},
+            )
+            await db.commit()
             raise _ip_not_allowed()
+    await registrar_evento(
+        db, user_id=user.id, user_email=user.email, action="auth.login_success", ip_address=client_ip
+    )
     token = create_access_token(user_id=user.id, email=user.email)
+    await db.commit()
     return TokenResponse(access_token=token)
 
 
