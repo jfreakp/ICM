@@ -4,15 +4,16 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from openpyxl import Workbook
 from sqlalchemy import Date, and_, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.audit import registrar_evento
 from app.axis_tables import axis_impugnaciones
 from app.database import get_db
 from app.models import User
-from app.routers.auth import get_current_user
+from app.routers.auth import get_client_ip, get_current_user
 from app.schemas import ImpugnacionItem, ImpugnacionListResponse
 
 router = APIRouter(prefix="/api/reportes", tags=["reportes"])
@@ -70,12 +71,13 @@ async def list_estados(
 
 @router.get("/impugnaciones", response_model=ImpugnacionListResponse)
 async def list_impugnaciones(
+    request: Request,
     fecha_desde: date,
     fecha_hasta: date,
     estado: str | None = None,
     page: int = Query(default=1, ge=1),
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> ImpugnacionListResponse:
     _validate_date_range(fecha_desde, fecha_hasta)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
@@ -94,6 +96,23 @@ async def list_impugnaciones(
     )
     rows = (await db.execute(stmt)).mappings().all()
     items = [ImpugnacionItem(**row) for row in rows]
+
+    await registrar_evento(
+        db,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        action="reportes.impugnaciones.search",
+        ip_address=get_client_ip(request),
+        details={
+            "fecha_desde": fecha_desde.isoformat(),
+            "fecha_hasta": fecha_hasta.isoformat(),
+            "estado": estado,
+            "page": page,
+            "total": total or 0,
+        },
+    )
+    await db.commit()
+
     return ImpugnacionListResponse(items=items, total=total or 0, page=page, page_size=PAGE_SIZE)
 
 
@@ -107,12 +126,13 @@ def _export_value(value):
 
 @router.get("/impugnaciones/export")
 async def export_impugnaciones(
+    request: Request,
     fecha_desde: date,
     fecha_hasta: date,
     formato: Literal["csv", "xlsx"],
     estado: str | None = None,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> Response:
     _validate_date_range(fecha_desde, fecha_hasta)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
@@ -125,6 +145,22 @@ async def export_impugnaciones(
     )
     rows = (await db.execute(stmt)).mappings().all()
     filename = f"impugnaciones_{fecha_desde.isoformat()}_{fecha_hasta.isoformat()}.{formato}"
+
+    await registrar_evento(
+        db,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        action="reportes.impugnaciones.export",
+        ip_address=get_client_ip(request),
+        details={
+            "fecha_desde": fecha_desde.isoformat(),
+            "fecha_hasta": fecha_hasta.isoformat(),
+            "estado": estado,
+            "formato": formato,
+            "filas_exportadas": len(rows),
+        },
+    )
+    await db.commit()
 
     if formato == "csv":
         buffer = io.StringIO()
