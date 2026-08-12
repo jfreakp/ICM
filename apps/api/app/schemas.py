@@ -58,3 +58,22 @@ class ImpugnacionListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class AuditLogItem(BaseModel):
+    id: int
+    occurred_at: datetime
+    user_id: int | None
+    user_email: str
+    action: str
+    ip_address: str | None
+    details: dict | None
+
+    model_config = {"from_attributes": True}
+
+
+class AuditLogListResponse(BaseModel):
+    items: list[AuditLogItem]
+    total: int
+    page: int
+    page_size: int

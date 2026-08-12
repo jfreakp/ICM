@@ -4,6 +4,7 @@ import pytest
 import pytest_asyncio
 from sqlalchemy import select, text
 
+from app.audit import registrar_evento
 from app.auth import create_access_token, hash_password
 from app.models import AuditLog, User
 
@@ -231,3 +232,97 @@ async def test_update_allowed_ip_creates_audit_event_with_old_and_new_ip(client,
         "ip_anterior": "10.0.0.9",
         "ip_nueva": "10.0.0.55",
     }
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_requires_admin(client, db_session):
+    user = await _create_user(db_session)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.get("/api/auditoria", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_without_token_returns_401(client, db_session):
+    response = await client.get("/api/auditoria")
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_returns_events_most_recent_first(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    await registrar_evento(db_session, user_id=None, user_email="a@example.com", action="auth.login_failed")
+    await db_session.commit()
+    await registrar_evento(db_session, user_id=None, user_email="b@example.com", action="auth.login_failed")
+    await db_session.commit()
+
+    response = await client.get("/api/auditoria", headers={"Authorization": f"Bearer {admin_token}"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["page"] == 1
+    assert body["page_size"] == 50
+    emails = [item["user_email"] for item in body["items"]]
+    assert emails.index("b@example.com") < emails.index("a@example.com")
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_filters_by_accion(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    await registrar_evento(db_session, user_id=None, user_email="x@example.com", action="auth.login_failed")
+    await registrar_evento(db_session, user_id=None, user_email="y@example.com", action="auth.logout")
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/auditoria",
+        params={"accion": "auth.logout"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["user_email"] == "y@example.com"
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_filters_by_usuario_email(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    await registrar_evento(db_session, user_id=None, user_email="find-me@example.com", action="auth.login_failed")
+    await registrar_evento(db_session, user_id=None, user_email="not-me@example.com", action="auth.login_failed")
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/auditoria",
+        params={"usuario_email": "find-me@example.com"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["user_email"] == "find-me@example.com"
+
+
+@pytest.mark.asyncio
+async def test_list_auditoria_out_of_range_page_returns_empty(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    await registrar_evento(db_session, user_id=None, user_email="z@example.com", action="auth.login_failed")
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/auditoria",
+        params={"page": 5},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["items"] == []
+    assert body["total"] == 1
