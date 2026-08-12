@@ -86,3 +86,26 @@ async def test_ip_mismatch_creates_login_blocked_ip_event(client, db_session):
     assert log is not None
     assert log.user_id == user.id
     assert log.details == {"ip_esperada": "10.0.0.9"}
+
+
+@pytest.mark.asyncio
+async def test_logout_creates_event_and_returns_204(client, db_session):
+    user = await _create_user(db_session, email="user@example.com", password="Sup3rSecret!")
+    login_response = await client.post(
+        "/api/auth/login", json={"email": "user@example.com", "password": "Sup3rSecret!"}
+    )
+    token = login_response.json()["access_token"]
+
+    response = await client.post("/api/auth/logout", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 204
+    log = await _last_audit_log(db_session, "auth.logout")
+    assert log is not None
+    assert log.user_id == user.id
+    assert log.user_email == "user@example.com"
+
+
+@pytest.mark.asyncio
+async def test_logout_without_token_returns_401(client, db_session):
+    response = await client.post("/api/auth/logout")
+    assert response.status_code == 401
