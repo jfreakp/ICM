@@ -6,8 +6,8 @@ import { AppShellComponent, AppShellRoute } from './app-shell.component';
 import { AuthService } from '../../core/auth.service';
 import { User } from '../../core/models/user.model';
 
-const ADMIN_USER: User = { id: 1, email: 'admin@icmloja.gob.ec', full_name: 'Admin User', is_admin: true };
-const NON_ADMIN_USER: User = { id: 2, email: 'user@icmloja.gob.ec', full_name: 'Regular User', is_admin: false };
+const ADMIN_USER: User = { id: 1, email: 'admin@icmloja.gob.ec', full_name: 'Admin User', is_admin: true, must_change_password: false };
+const NON_ADMIN_USER: User = { id: 2, email: 'user@icmloja.gob.ec', full_name: 'Regular User', is_admin: false, must_change_password: false };
 
 describe('AppShellComponent', () => {
   let fixture: ComponentFixture<AppShellComponent>;

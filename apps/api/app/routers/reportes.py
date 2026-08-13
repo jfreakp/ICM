@@ -13,7 +13,7 @@ from app.audit import registrar_evento
 from app.axis_tables import axis_impugnaciones
 from app.database import get_db
 from app.models import User
-from app.routers.auth import get_client_ip, get_current_user
+from app.routers.auth import get_client_ip, require_active_user
 from app.schemas import ImpugnacionItem, ImpugnacionListResponse
 
 router = APIRouter(prefix="/api/reportes", tags=["reportes"])
@@ -57,7 +57,7 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | N
 
 @router.get("/impugnaciones/estados", response_model=list[str])
 async def list_estados(
-    db: AsyncSession = Depends(get_db), _user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db), _user: User = Depends(require_active_user)
 ) -> list[str]:
     stmt = (
         select(axis_impugnaciones.c.estado)
@@ -77,7 +77,7 @@ async def list_impugnaciones(
     estado: str | None = None,
     page: int = Query(default=1, ge=1),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_user),
 ) -> ImpugnacionListResponse:
     _validate_date_range(fecha_desde, fecha_hasta)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
@@ -132,7 +132,7 @@ async def export_impugnaciones(
     formato: Literal["csv", "xlsx"],
     estado: str | None = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_user),
 ) -> Response:
     _validate_date_range(fecha_desde, fecha_hasta)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)

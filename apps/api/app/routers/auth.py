@@ -9,6 +9,7 @@ from app.auth import create_access_token, decode_access_token, hash_password, ve
 from app.database import get_db
 from app.models import User
 from app.schemas import (
+    ChangeOwnPasswordRequest,
     CreateUserRequest,
     LoginRequest,
     ResetPasswordRequest,
@@ -57,7 +58,16 @@ async def get_current_user(
     return user
 
 
-async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+async def require_active_user(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.must_change_password:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"code": "password_change_required", "message": "Debes cambiar tu contraseña"},
+        )
+    return current_user
+
+
+async def require_admin(current_user: User = Depends(require_active_user)) -> User:
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -124,6 +134,36 @@ async def me(current_user: User = Depends(get_current_user)) -> UserOut:
     return UserOut.model_validate(current_user)
 
 
+@router.patch("/me/password", response_model=UserOut)
+async def change_own_password(
+    payload: ChangeOwnPasswordRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UserOut:
+    if not verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Contraseña actual incorrecta"
+        )
+    if verify_password(payload.new_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La nueva contraseña debe ser diferente a la actual",
+        )
+    current_user.password_hash = hash_password(payload.new_password)
+    current_user.must_change_password = False
+    await registrar_evento(
+        db,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        action="auth.change_own_password",
+        ip_address=get_client_ip(request),
+    )
+    await db.commit()
+    await db.refresh(current_user)
+    return UserOut.model_validate(current_user)
+
+
 @router.get("/users", response_model=list[UserListItem])
 async def list_users(
     db: AsyncSession = Depends(get_db), _admin: User = Depends(require_admin)
@@ -150,6 +190,7 @@ async def create_user(
         password_hash=hash_password(payload.password),
         full_name=payload.full_name,
         is_admin=payload.is_admin,
+        must_change_password=True,
     )
     db.add(user)
     await db.flush()
@@ -212,6 +253,7 @@ async def reset_password(
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
     user.password_hash = hash_password(payload.new_password)
+    user.must_change_password = True
     await registrar_evento(
         db,
         user_id=admin.id,

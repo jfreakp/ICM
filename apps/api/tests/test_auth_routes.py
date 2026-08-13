@@ -588,3 +588,268 @@ async def test_create_user_with_multibyte_password_over_72_bytes_does_not_crash(
     )
 
     assert response.status_code == 201
+
+
+@pytest.mark.asyncio
+async def test_new_user_defaults_must_change_password_to_false(db_session):
+    user = await _create_user(db_session, email="defaultflag@example.com")
+    assert user.must_change_password is False
+
+
+@pytest.mark.asyncio
+async def test_user_can_be_created_with_must_change_password_true(db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    user = User(
+        email="flagged@example.com",
+        password_hash=hash_password("Sup3rSecret!"),
+        full_name="Flagged User",
+        must_change_password=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    assert user.must_change_password is True
+
+
+@pytest.mark.asyncio
+async def test_admin_action_blocked_when_must_change_password_is_true(client, db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    admin = User(
+        email="pendiente@example.com",
+        password_hash=hash_password("Sup3rSecret!"),
+        full_name="Admin Pendiente",
+        is_admin=True,
+        must_change_password=True,
+    )
+    db_session.add(admin)
+    await db_session.commit()
+    await db_session.refresh(admin)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.get("/api/auth/users", headers={"Authorization": f"Bearer {admin_token}"})
+
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "password_change_required"
+
+
+@pytest.mark.asyncio
+async def test_admin_action_allowed_when_must_change_password_is_false(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.get("/api/auth/users", headers={"Authorization": f"Bearer {admin_token}"})
+
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_logout_is_exempt_from_the_password_change_block(client, db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    user = User(
+        email="logoutpendiente@example.com",
+        password_hash=hash_password("Temporal123!"),
+        full_name="Usuario",
+        must_change_password=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.post("/api/auth/logout", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_me_includes_must_change_password_field(client, db_session):
+    await _create_user(db_session, email="user@example.com", password="Sup3rSecret!")
+    login_response = await client.post(
+        "/api/auth/login", json={"email": "user@example.com", "password": "Sup3rSecret!"}
+    )
+    token = login_response.json()["access_token"]
+
+    response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    assert response.json()["must_change_password"] is False
+
+
+@pytest.mark.asyncio
+async def test_change_own_password_succeeds_and_clears_flag(client, db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    user = User(
+        email="cambiar@example.com",
+        password_hash=hash_password("Temporal123!"),
+        full_name="Usuario",
+        must_change_password=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.patch(
+        "/api/auth/me/password",
+        json={"current_password": "Temporal123!", "new_password": "Definitiva456!"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["must_change_password"] is False
+
+    old_login = await client.post(
+        "/api/auth/login", json={"email": "cambiar@example.com", "password": "Temporal123!"}
+    )
+    assert old_login.status_code == 401
+
+    new_login = await client.post(
+        "/api/auth/login", json={"email": "cambiar@example.com", "password": "Definitiva456!"}
+    )
+    assert new_login.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_change_own_password_with_wrong_current_password_returns_401(client, db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    user = User(
+        email="malaclave@example.com",
+        password_hash=hash_password("Temporal123!"),
+        full_name="Usuario",
+        must_change_password=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.patch(
+        "/api/auth/me/password",
+        json={"current_password": "Incorrecta!", "new_password": "Definitiva456!"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 401
+    await db_session.refresh(user)
+    assert user.must_change_password is True
+
+
+@pytest.mark.asyncio
+async def test_change_own_password_works_even_while_flag_is_active(client, db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    user = User(
+        email="bloqueado@example.com",
+        password_hash=hash_password("Temporal123!"),
+        full_name="Usuario",
+        must_change_password=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    blocked = await client.get(
+        "/api/reportes/impugnaciones/estados", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert blocked.status_code == 403
+
+    allowed = await client.patch(
+        "/api/auth/me/password",
+        json={"current_password": "Temporal123!", "new_password": "Definitiva456!"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert allowed.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_change_own_password_with_short_new_password_returns_422(client, db_session):
+    await _create_user(db_session, email="cortita@example.com", password="Sup3rSecret!")
+    login_response = await client.post(
+        "/api/auth/login", json={"email": "cortita@example.com", "password": "Sup3rSecret!"}
+    )
+    token = login_response.json()["access_token"]
+
+    response = await client.patch(
+        "/api/auth/me/password",
+        json={"current_password": "Sup3rSecret!", "new_password": "short"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_change_own_password_rejects_same_password(client, db_session):
+    from app.auth import hash_password
+    from app.models import User
+
+    user = User(
+        email="mismaclave@example.com",
+        password_hash=hash_password("Temporal123!"),
+        full_name="Usuario",
+        must_change_password=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.patch(
+        "/api/auth/me/password",
+        json={"current_password": "Temporal123!", "new_password": "Temporal123!"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 400
+    await db_session.refresh(user)
+    assert user.must_change_password is True
+
+
+@pytest.mark.asyncio
+async def test_created_user_must_change_password_is_true(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    await client.post(
+        "/api/auth/users",
+        json={
+            "email": "flagcreado@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    result = await db_session.execute(select(User).where(User.email == "flagcreado@example.com"))
+    created = result.scalar_one()
+    assert created.must_change_password is True
+
+
+@pytest.mark.asyncio
+async def test_reset_password_sets_must_change_password_true(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    target = await _create_user(db_session, email="flagreset@example.com", password="Original123!")
+
+    await client.patch(
+        f"/api/auth/users/{target.id}/password",
+        json={"new_password": "NuevaClave123!"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    await db_session.refresh(target)
+    assert target.must_change_password is True
