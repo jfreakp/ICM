@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Administración de Usuarios - ICM Loja</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-error-container": "#93000a",
+                      "tertiary-container": "#4f2e00",
+                      "secondary-fixed-dim": "#f8bc4b",
+                      "tertiary-fixed": "#ffddba",
+                      "on-surface": "#0d1c2e",
+                      "secondary-fixed": "#ffdeaa",
+                      "primary-fixed-dim": "#adc7f7",
+                      "surface": "#f8f9ff",
+                      "primary": "#002045",
+                      "inverse-primary": "#adc7f7",
+                      "inverse-on-surface": "#eaf1ff",
+                      "primary-fixed": "#d6e3ff",
+                      "on-secondary-fixed-variant": "#5f4100",
+                      "primary-container": "#1a365d",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#0d1c2e",
+                      "on-primary-container": "#86a0cd",
+                      "surface-container-high": "#dce9ff",
+                      "surface-bright": "#f8f9ff",
+                      "tertiary-fixed-dim": "#f2bc82",
+                      "outline": "#74777f",
+                      "on-surface-variant": "#43474e",
+                      "on-error": "#ffffff",
+                      "surface-dim": "#ccdbf4",
+                      "on-secondary-container": "#725000",
+                      "inverse-surface": "#223144",
+                      "error-container": "#ffdad6",
+                      "surface-tint": "#455f88",
+                      "on-primary-fixed-variant": "#2d476f",
+                      "outline-variant": "#c4c6cf",
+                      "secondary": "#7d5700",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed": "#001b3c",
+                      "on-tertiary-fixed": "#2b1700",
+                      "error": "#ba1a1a",
+                      "surface-container": "#e5eeff",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-container": "#c6955e",
+                      "on-secondary-fixed": "#271900",
+                      "background": "#f8f9ff",
+                      "tertiary": "#321b00",
+                      "secondary-container": "#ffc250",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-low": "#eff4ff",
+                      "on-tertiary-fixed-variant": "#633f0f",
+                      "surface-container-highest": "#d4e4fc",
+                      "surface-variant": "#d4e4fc"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "md": "24px",
+                      "xs": "8px",
+                      "lg": "40px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px",
+                      "margin-desktop": "32px",
+                      "base": "4px",
+                      "xl": "64px",
+                      "sm": "16px"
+              },
+              "fontFamily": {
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "display-lg-mobile": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        /* Utility classes to match design system expectations */
+        .font-label-caps { font-family: 'Inter', sans-serif; }
+        .text-label-caps { font-size: 12px; line-height: 1; letter-spacing: 0.05em; font-weight: 600; }
+        
+        .font-display-lg { font-family: 'Inter', sans-serif; }
+        .text-display-lg { font-size: 32px; line-height: 1.2; letter-spacing: -0.02em; font-weight: 700; }
+        
+        .font-display-lg-mobile { font-family: 'Inter', sans-serif; }
+        .text-display-lg-mobile { font-size: 24px; line-height: 1.2; font-weight: 700; }
+        
+        .font-body-lg { font-family: 'Inter', sans-serif; }
+        .text-body-lg { font-size: 16px; line-height: 1.6; font-weight: 400; }
+        
+        .font-headline-md { font-family: 'Inter', sans-serif; }
+        .text-headline-md { font-size: 20px; line-height: 1.4; font-weight: 600; }
+        
+        .font-body-sm { font-family: 'Inter', sans-serif; }
+        .text-body-sm { font-size: 14px; line-height: 1.5; font-weight: 400; }
+    </style>
+</head>
+<body class="bg-background text-on-background h-full font-sans antialiased overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim border-b border-outline-variant docked top-0 w-full flat no shadows flex justify-between items-center h-16 ml-[280px] px-gutter w-[calc(100%-280px)] fixed z-30">
+<div>
+<h1 class="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">Sistema de Reportes de Multas</h1>
+</div>
+<div class="flex items-center gap-sm">
+<button class="text-on-surface-variant dark:text-outline hover:text-primary dark:hover:text-primary-fixed cursor-pointer opacity-90 hover:opacity-100 transition-opacity flex items-center justify-center p-2 rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-outline-variant">
+<img alt="User Avatar" class="object-cover w-full h-full" data-alt="A small, professional avatar portrait of a government administrative employee. The lighting is bright and corporate, set against a clean white background. High resolution, sharp focus, modern institutional style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOBSvdVDqbOY_RZk_tzSn70JY_e0A3s6RwxS0hW8IoMADIQBLEVCjDrOv11RqLN8utfG-WXg-rKzFM6CIphyMFiT8WEy9P2frN28g_2eNyLzTwQa7syl_9S5MDj7fWw4Wnzbc_buBxt_Nr6LDWj9wnunt-KgdsQ3NsNkafm5td5ohJn2Ig1sSe0vub5NMuwhRzK0XzD5bpv_lQ5ZXNVaAipin5mWV1OtjsV2hkruB4BlAOiQMaUXLBAQ"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container docked left-0 h-full w-[280px] border-r border-outline-variant flat no shadows fixed left-0 top-0 h-full z-40 flex flex-col justify-between">
+<div>
+<!-- Header -->
+<div class="px-md py-lg border-b border-outline-variant/20 flex flex-col items-start gap-xs">
+<div class="w-12 h-12 rounded-lg bg-surface flex items-center justify-center overflow-hidden mb-2">
+<img alt="ICM Logo" class="object-contain w-8 h-8" data-alt="A minimalist institutional logo featuring a stylized shield and geometric shapes, primarily in deep navy blue and stark white. The aesthetic is formal, stable, and highly professional, typical of modern government systems." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkCkpZpn0THP76f1FYtjODcYTCr0evVOfzHs7FqUsKHRtuQoG4mI0yn2rEWT9dMospQH-uQYC18sPTMeYNioRKT5fd3DxGJbjp8RtJd2Nav8cFcGaVP_vRjZuej25aHOZRA791kdlDnnvfPEhbSYpSaDatJ1TuL5PlmLNvyz9g91SE9gIAHmf3dL1vH00Uyaw9F17QNYma2xCfQjqE3uQpvEQAjBz0rdfY6LNcKpopkTAn5IfwP3aj4w"/>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-primary dark:text-inverse-primary text-xl tracking-tight">ICM Loja</h2>
+<span class="font-body-sm text-body-sm text-on-primary-container">Sistema de Multas</span>
+</div>
+<!-- Main Navigation -->
+<ul class="py-sm flex flex-col font-body-sm text-body-sm">
+<li>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container dark:hover:bg-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span>Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container dark:hover:bg-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">assessment</span>
+<span>Reportes</span>
+</a>
+</li>
+<li>
+<!-- Active State -->
+<a class="flex items-center gap-sm px-md py-sm text-secondary-fixed-dim border-l-4 border-secondary-fixed hover:bg-primary-container dark:hover:bg-primary transition-colors duration-200 bg-primary-container/50" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">manage_accounts</span>
+<span class="font-bold">Administración de Usuarios</span>
+</a>
+</li>
+</ul>
+</div>
+<!-- Footer Navigation -->
+<ul class="py-sm border-t border-outline-variant/20 font-body-sm text-body-sm">
+<li>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container dark:hover:bg-primary transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">logout</span>
+<span>Cerrar Sesión</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] mt-16 p-gutter h-[calc(100vh-64px)] overflow-y-auto bg-surface">
+<div class="max-w-[1280px] mx-auto">
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-lg">
+<h2 class="font-display-lg text-display-lg text-on-surface">Administración de Usuarios</h2>
+<button class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold flex items-center gap-2 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Nuevo Usuario
+                </button>
+</div>
+<!-- Users Data Table Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+<!-- Table Controls / Filters (Optional structural addition for realism) -->
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded-DEFAULT font-body-sm text-body-sm bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" placeholder="Buscar usuarios..." type="text"/>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Nombre</th>
+<th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Email</th>
+<th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Rol</th>
+<th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Estado</th>
+<th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors">
+<td class="py-3 px-md font-medium text-on-surface">Ana Silva Pérez</td>
+<td class="py-3 px-md text-on-surface-variant">ana.silva@icmloja.gob.ec</td>
+<td class="py-3 px-md text-on-surface-variant">Admin</td>
+<td class="py-3 px-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">Activo</span>
+</td>
+<td class="py-3 px-md text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-surface-container transition-colors" title="Editar">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-error rounded hover:bg-error-container/50 transition-colors" title="Eliminar">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors">
+<td class="py-3 px-md font-medium text-on-surface">Carlos Mendoza</td>
+<td class="py-3 px-md text-on-surface-variant">c.mendoza@icmloja.gob.ec</td>
+<td class="py-3 px-md text-on-surface-variant">Employee</td>
+<td class="py-3 px-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">Activo</span>
+</td>
+<td class="py-3 px-md text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-surface-container transition-colors" title="Editar">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-error rounded hover:bg-error-container/50 transition-colors" title="Eliminar">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors">
+<td class="py-3 px-md font-medium text-on-surface">Lucía Torres</td>
+<td class="py-3 px-md text-on-surface-variant">ltorres@icmloja.gob.ec</td>
+<td class="py-3 px-md text-on-surface-variant">Employee</td>
+<td class="py-3 px-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">Inactivo</span>
+</td>
+<td class="py-3 px-md text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-surface-container transition-colors" title="Editar">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-error rounded hover:bg-error-container/50 transition-colors" title="Eliminar">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors">
+<td class="py-3 px-md font-medium text-on-surface">Javier Ruíz</td>
+<td class="py-3 px-md text-on-surface-variant">jruiz@icmloja.gob.ec</td>
+<td class="py-3 px-md text-on-surface-variant">Employee</td>
+<td class="py-3 px-md">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">Activo</span>
+</td>
+<td class="py-3 px-md text-right">
+<div class="flex justify-end gap-2">
+<button class="p-1 text-on-surface-variant hover:text-primary rounded hover:bg-surface-container transition-colors" title="Editar">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-error rounded hover:bg-error-container/50 transition-colors" title="Eliminar">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-bright">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando 1 a 4 de 24 usuarios</span>
+<div class="flex gap-1">
+<button class="p-1 text-outline hover:text-primary disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="p-1 text-outline hover:text-primary">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

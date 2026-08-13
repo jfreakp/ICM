@@ -1,0 +1,90 @@
+<app-shell activeRoute="usuarios">
+  <div class="flex justify-between items-center mb-lg">
+    <h2 class="font-display-lg text-display-lg text-on-surface">Administración de Usuarios</h2>
+    <button type="button" data-testid="nuevo-usuario-btn" (click)="abrirModalNuevoUsuario()" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold flex items-center gap-2 transition-colors shadow-sm">
+      <span class="material-symbols-outlined text-[18px]">add</span>
+      Nuevo Usuario
+    </button>
+  </div>
+
+  @if (error$ | async; as error) {
+    <p class="text-error text-body-sm mb-md">{{ error }}</p>
+  }
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+    <div class="p-md border-b border-outline-variant flex justify-between items-center bg-surface-bright">
+      <div class="relative w-64">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-[20px]">search</span>
+        <input type="text" placeholder="Buscar usuarios..." class="w-full pl-10 pr-3 py-2 border border-outline-variant rounded-DEFAULT font-body-sm text-body-sm bg-surface-container-lowest focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" />
+      </div>
+    </div>
+    @if (usuarios$ | async; as usuarios) {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead class="bg-surface-container-low border-b border-outline-variant">
+            <tr>
+              <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Nombre</th>
+              <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Email</th>
+              <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Rol</th>
+              <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Estado</th>
+              <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">IP anclada</th>
+              <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant"></th>
+            </tr>
+          </thead>
+          <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
+            @for (usuario of usuarios; track usuario.id) {
+              <tr class="hover:bg-surface-container-lowest/50 transition-colors">
+                <td class="py-3 px-md font-medium text-on-surface">{{ usuario.full_name }}</td>
+                <td class="py-3 px-md text-on-surface-variant">{{ usuario.email }}</td>
+                <td class="py-3 px-md text-on-surface-variant">{{ rolLabel(usuario) }}</td>
+                <td class="py-3 px-md">
+                  <span [class]="estadoBadgeClass(usuario)">{{ estadoLabel(usuario) }}</span>
+                </td>
+                <td class="py-3 px-md text-on-surface-variant">{{ usuario.allowed_ip ?? 'Sin anclar' }}</td>
+                <td class="py-3 px-md">
+                  <div class="flex items-center gap-sm">
+                    @if (usuario.allowed_ip) {
+                      <button
+                        type="button"
+                        (click)="resetAllowedIp(usuario)"
+                        class="text-primary hover:underline font-body-sm text-body-sm"
+                      >
+                        Resetear IP
+                      </button>
+                    }
+                    <button
+                      type="button"
+                      data-testid="resetear-clave-btn"
+                      (click)="abrirModalResetearClave(usuario)"
+                      class="text-primary hover:underline font-body-sm text-body-sm"
+                    >
+                      Resetear Contraseña
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-bright">
+        <span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando {{ usuarios.length }} de {{ usuarios.length }} usuarios</span>
+      </div>
+    }
+  </div>
+
+  @if (mostrarModalNuevoUsuario) {
+    <app-nuevo-usuario-modal
+      (creado)="onUsuarioCreado()"
+      (cancelado)="cerrarModalNuevoUsuario()"
+    ></app-nuevo-usuario-modal>
+  }
+
+  @if (usuarioParaResetearClave) {
+    <app-resetear-contrasena-modal
+      [usuario]="usuarioParaResetearClave"
+      (reseteado)="onClaveReseteada()"
+      (cancelado)="cerrarModalResetearClave()"
+    ></app-resetear-contrasena-modal>
+  }
+</app-shell>

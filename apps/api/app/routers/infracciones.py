@@ -1,0 +1,228 @@
+import csv
+import io
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from openpyxl import Workbook
+from sqlalchemy import Date, and_, cast, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
+
+from app.audit import registrar_evento
+from app.axis_tables import axis_infracciones
+from app.database import get_db
+from app.models import User
+from app.routers.auth import get_client_ip, get_current_user
+from app.schemas import InfraccionItem, InfraccionListResponse
+
+router = APIRouter(prefix="/api/reportes", tags=["reportes"])
+
+PAGE_SIZE = 50
+
+COLUMN_HEADERS: dict[str, str] = {
+    "registro": "Registro",
+    "fecha_registro": "Fecha de Registro",
+    "fecha_emision": "Fecha de Emisión",
+    "fecha_aprobacion": "Fecha de Aprobación",
+    "fecha_vencimiento": "Fecha de Vencimiento",
+    "estado": "Estado",
+    "codigo_infraccion": "Código de Infracción",
+    "codigo_infraccion_ant": "Código de Infracción Anterior",
+    "contravencion": "Contravención",
+    "articulo": "Artículo",
+    "literal": "Literal",
+    "descripcion_articulo": "Descripción del Artículo",
+    "periodo_fiscal": "Período Fiscal",
+    "oficina": "Oficina",
+    "origen_registro": "Origen de Registro",
+    "tipo_registro_infraccion": "Tipo de Registro",
+    "tipo_emision": "Tipo de Emisión",
+    "tipo_deudor": "Tipo de Deudor",
+    "codigo_usuario_registra": "Usuario que Registra",
+    "observacion": "Observación",
+    "provincia": "Provincia",
+    "localidad": "Localidad",
+    "lugar_infraccion": "Lugar de Infracción",
+    "canal": "Canal",
+    "placa": "Placa",
+    "tipo_identificacion_infractor": "Tipo de Identificación (Infractor)",
+    "numero_identificacion_infractor": "Número de Identificación (Infractor)",
+    "nombre_infractor": "Nombre del Infractor",
+    "tipo_identificacion_propietario": "Tipo de Identificación (Propietario)",
+    "numero_identificacion_propietario": "Número de Identificación (Propietario)",
+    "nombre_propietario": "Nombre del Propietario",
+    "indicador_bloqueada": "Bloqueada",
+    "indicador_acta_juzgamiento": "Acta de Juzgamiento",
+    "indicador_modificada": "Modificada",
+    "indicador_calcula_recargo": "Calcula Recargo",
+    "valor_capital": "Valor Capital",
+    "valor_capital_exonerado": "Valor Capital Exonerado",
+    "valor_recargo": "Valor Recargo",
+    "valor_recargo_exonerado": "Valor Recargo Exonerado",
+    "valor_intereses": "Valor Intereses",
+    "valor_total": "Valor Total",
+}
+COLUMN_NAMES = list(COLUMN_HEADERS)
+
+
+def _validate_date_range(fecha_desde: date, fecha_hasta: date) -> None:
+    if fecha_desde > fecha_hasta:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="fecha_desde no puede ser posterior a fecha_hasta",
+        )
+    if (fecha_desde.year, fecha_desde.month) != (fecha_hasta.year, fecha_hasta.month):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El rango de fechas debe estar dentro del mismo mes calendario",
+        )
+
+
+def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | None):
+    conditions = [cast(axis_infracciones.c.fecha_registro, Date).between(fecha_desde, fecha_hasta)]
+    if estado is not None:
+        conditions.append(axis_infracciones.c.estado == estado)
+    return conditions
+
+
+@router.get("/infracciones/estados", response_model=list[str])
+async def list_estados_infracciones(
+    db: AsyncSession = Depends(get_db), _user: User = Depends(get_current_user)
+) -> list[str]:
+    stmt = (
+        select(axis_infracciones.c.estado)
+        .where(axis_infracciones.c.estado.is_not(None))
+        .distinct()
+        .order_by(axis_infracciones.c.estado)
+    )
+    result = await db.execute(stmt)
+    return [row[0] for row in result.all()]
+
+
+@router.get("/infracciones", response_model=InfraccionListResponse)
+async def list_infracciones(
+    request: Request,
+    fecha_desde: date,
+    fecha_hasta: date,
+    estado: str | None = None,
+    page: int = Query(default=1, ge=1),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> InfraccionListResponse:
+    _validate_date_range(fecha_desde, fecha_hasta)
+    conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
+
+    total = await db.scalar(
+        select(func.count()).select_from(axis_infracciones).where(and_(*conditions))
+    )
+
+    columns = [axis_infracciones.c.id] + [axis_infracciones.c[name] for name in COLUMN_NAMES]
+    stmt = (
+        select(*columns)
+        .where(and_(*conditions))
+        .order_by(axis_infracciones.c.fecha_registro.desc(), axis_infracciones.c.id.desc())
+        .limit(PAGE_SIZE)
+        .offset((page - 1) * PAGE_SIZE)
+    )
+    rows = (await db.execute(stmt)).mappings().all()
+    items = [InfraccionItem(**row) for row in rows]
+
+    await registrar_evento(
+        db,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        action="reportes.infracciones.search",
+        ip_address=get_client_ip(request),
+        details={
+            "fecha_desde": fecha_desde.isoformat(),
+            "fecha_hasta": fecha_hasta.isoformat(),
+            "estado": estado,
+            "page": page,
+            "total": total or 0,
+        },
+    )
+    await db.commit()
+
+    return InfraccionListResponse(items=items, total=total or 0, page=page, page_size=PAGE_SIZE)
+
+
+def _export_value(value):
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return float(value)
+    return value
+
+
+@router.get("/infracciones/export")
+async def export_infracciones(
+    request: Request,
+    fecha_desde: date,
+    fecha_hasta: date,
+    formato: Literal["csv", "xlsx"],
+    estado: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    _validate_date_range(fecha_desde, fecha_hasta)
+    conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
+
+    columns = [axis_infracciones.c[name] for name in COLUMN_NAMES]
+    stmt = (
+        select(*columns)
+        .where(and_(*conditions))
+        .order_by(axis_infracciones.c.fecha_registro.desc(), axis_infracciones.c.id.desc())
+    )
+    rows = (await db.execute(stmt)).mappings().all()
+    filename = f"infracciones_{fecha_desde.isoformat()}_{fecha_hasta.isoformat()}.{formato}"
+
+    await registrar_evento(
+        db,
+        user_id=current_user.id,
+        user_email=current_user.email,
+        action="reportes.infracciones.export",
+        ip_address=get_client_ip(request),
+        details={
+            "fecha_desde": fecha_desde.isoformat(),
+            "fecha_hasta": fecha_hasta.isoformat(),
+            "estado": estado,
+            "formato": formato,
+            "filas_exportadas": len(rows),
+        },
+    )
+    await db.commit()
+
+    def _build_csv() -> str:
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(list(COLUMN_HEADERS.values()))
+        for row in rows:
+            writer.writerow([_export_value(row[name]) for name in COLUMN_NAMES])
+        return "﻿" + buffer.getvalue()
+
+    def _build_xlsx() -> bytes:
+        workbook = Workbook(write_only=True)
+        sheet = workbook.create_sheet()
+        sheet.append(list(COLUMN_HEADERS.values()))
+        for row in rows:
+            sheet.append([_export_value(row[name]) for name in COLUMN_NAMES])
+        xlsx_buffer = io.BytesIO()
+        workbook.save(xlsx_buffer)
+        return xlsx_buffer.getvalue()
+
+    if formato == "csv":
+        content = await run_in_threadpool(_build_csv)
+        return Response(
+            content=content,
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
+    content = await run_in_threadpool(_build_xlsx)
+    return Response(
+        content=content,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

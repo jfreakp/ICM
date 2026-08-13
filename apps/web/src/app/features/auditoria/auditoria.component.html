@@ -1,0 +1,78 @@
+<app-shell activeRoute="auditoria">
+  <div class="flex justify-between items-center mb-lg">
+    <h2 class="font-display-lg text-display-lg text-on-surface">Auditoría</h2>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="buscar()" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md mb-lg flex flex-wrap items-end gap-md">
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="desde">Desde</label>
+      <input id="desde" type="date" formControlName="desde" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+    </div>
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="hasta">Hasta</label>
+      <input id="hasta" type="date" formControlName="hasta" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+    </div>
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="accion">Acción</label>
+      <select id="accion" formControlName="accion" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm">
+        <option value="">Todas</option>
+        @for (accion of acciones; track accion.value) {
+          <option [value]="accion.value">{{ accion.label }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="usuario-email">Usuario</label>
+      <input id="usuario-email" type="text" formControlName="usuarioEmail" placeholder="email@ejemplo.com" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+    </div>
+    <button type="submit" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold">
+      Filtrar
+    </button>
+  </form>
+
+  @if (error$ | async; as error) {
+    <p class="text-error text-body-sm mb-md">{{ error }}</p>
+  }
+
+  @if (loading$ | async) {
+    <p class="text-on-surface-variant text-body-sm">Cargando...</p>
+  } @else if (resultado$ | async; as resultado) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+      @if (resultado.total === 0) {
+        <p class="p-md text-on-surface-variant text-body-sm">No hay eventos para estos filtros</p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+              <tr>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha/Hora</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Usuario</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Acción</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Detalle</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">IP</th>
+              </tr>
+            </thead>
+            <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
+              @for (item of resultado.items; track item.id) {
+                <tr class="hover:bg-surface-container-lowest/50 transition-colors">
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.occurred_at | date:'dd/MM/yyyy HH:mm:ss':'-0500' }}</td>
+                  <td class="py-3 px-md text-on-surface">{{ item.user_email }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ accionLabel(item.action) }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ detalle(item) }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.ip_address }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-bright">
+          <span class="font-body-sm text-body-sm text-on-surface-variant">Página {{ resultado.page }} — {{ resultado.total }} resultados</span>
+          <div class="flex gap-sm">
+            <button type="button" data-testid="pagina-anterior" [disabled]="resultado.page <= 1" (click)="cambiarPagina(resultado.page - 1)" class="px-3 py-1 border border-outline-variant rounded-DEFAULT font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+            <button type="button" data-testid="pagina-siguiente" [disabled]="resultado.page * resultado.page_size >= resultado.total" (click)="cambiarPagina(resultado.page + 1)" class="px-3 py-1 border border-outline-variant rounded-DEFAULT font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed">Siguiente</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</app-shell>

@@ -1,0 +1,27 @@
+<div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div class="bg-surface-container-lowest rounded-lg shadow-lg w-full max-w-md p-lg">
+    <h3 class="font-headline-md text-headline-md text-on-surface mb-md">Resetear contraseña de {{ usuario.full_name }}</h3>
+
+    @if (error$ | async; as error) {
+      <p class="text-error text-body-sm mb-md">{{ error }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-md">
+      <div>
+        <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="reset-password">Contraseña nueva</label>
+        <input id="reset-password" type="password" formControlName="password" class="w-full border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+      </div>
+      <div>
+        <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="reset-confirmar">Confirmar contraseña</label>
+        <input id="reset-confirmar" type="password" formControlName="confirmPassword" class="w-full border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+        @if (passwordMismatch) {
+          <p class="text-error text-body-sm mt-1">Las contraseñas no coinciden.</p>
+        }
+      </div>
+      <div class="flex justify-end gap-sm mt-md">
+        <button type="button" data-testid="cancelar-resetear-clave" (click)="cancelar()" class="px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm border border-outline-variant">Cancelar</button>
+        <button type="submit" data-testid="guardar-resetear-clave" [disabled]="form.invalid" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Generación de Reportes de Multas - ICM Loja</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#4f2e00",
+                        "secondary-fixed-dim": "#f8bc4b",
+                        "tertiary-fixed": "#ffddba",
+                        "on-surface": "#0d1c2e",
+                        "secondary-fixed": "#ffdeaa",
+                        "primary-fixed-dim": "#adc7f7",
+                        "surface": "#f8f9ff",
+                        "primary": "#002045",
+                        "inverse-primary": "#adc7f7",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-fixed": "#d6e3ff",
+                        "on-secondary-fixed-variant": "#5f4100",
+                        "primary-container": "#1a365d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#0d1c2e",
+                        "on-primary-container": "#86a0cd",
+                        "surface-container-high": "#dce9ff",
+                        "surface-bright": "#f8f9ff",
+                        "tertiary-fixed-dim": "#f2bc82",
+                        "outline": "#74777f",
+                        "on-surface-variant": "#43474e",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#ccdbf4",
+                        "on-secondary-container": "#725000",
+                        "inverse-surface": "#223144",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#455f88",
+                        "on-primary-fixed-variant": "#2d476f",
+                        "outline-variant": "#c4c6cf",
+                        "secondary": "#7d5700",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#001b3c",
+                        "on-tertiary-fixed": "#2b1700",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5eeff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#c6955e",
+                        "on-secondary-fixed": "#271900",
+                        "background": "#f8f9ff",
+                        "tertiary": "#321b00",
+                        "secondary-container": "#ffc250",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "on-tertiary-fixed-variant": "#633f0f",
+                        "surface-container-highest": "#d4e4fc",
+                        "surface-variant": "#d4e4fc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "xs": "8px",
+                        "lg": "40px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "base": "4px",
+                        "xl": "64px",
+                        "sm": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex antialiased">
+<!-- SideNavBar -->
+<nav class="hidden md:flex fixed left-0 top-0 h-full z-40 flex-col justify-between bg-primary w-[280px] border-r border-outline-variant">
+<div>
+<!-- Header -->
+<div class="p-md flex items-center gap-sm border-b border-outline-variant/20">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center shrink-0">
+<img alt="ICM Logo" class="object-cover w-full h-full" data-alt="A clean, minimalist abstract logo for a government or institutional software system, featuring crisp geometric shapes in shades of blue and white, set against a transparent or solid light background. The logo projects stability and official capacity. The style is flat, modern, and corporate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpwWBtgcNOO84cDwiQYpc3aeXI8JrZ4P3Lh42Kr8I78jScstn3jS_82SCDFqRt7nrzOnfAsPXRCVjS6PVUbBaCieocXfAwd6k49MDOcgWXwn-P0ybQ2bdZPEsD-o2AdFV0VAgi6T6oN-fVHHB8MshKPQtbo0rocn4Ppi24Zmx0_9Y4P-1VRpUEem-L8pWf0u5t_JGw8DyY9g6JVcLvufBZm8a1LNSt2QJyRFQMtobapzFi00stz9lvcA"/>
+</div>
+<div>
+<h1 class="font-display-lg text-display-lg text-on-primary">ICM Loja</h1>
+<p class="font-body-sm text-body-sm text-on-primary/70">Sistema de Multas</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<ul class="mt-md flex flex-col gap-xs">
+<li>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-body-sm text-body-sm">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-md py-sm text-secondary-fixed-dim border-l-4 border-secondary-fixed transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">assessment</span>
+<span class="font-body-sm text-body-sm font-bold">Reportes</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+<span class="font-body-sm text-body-sm">Administración de Usuarios</span>
+</a>
+</li>
+</ul>
+</div>
+<!-- Footer -->
+<div class="p-md border-t border-outline-variant/20">
+<a class="flex items-center gap-sm px-md py-sm text-on-primary/70 hover:text-on-primary hover:bg-primary-container transition-colors duration-200 rounded-DEFAULT" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-body-sm text-body-sm">Cerrar Sesión</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 md:ml-[280px] flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center h-16 px-gutter bg-surface border-b border-outline-variant w-full sticky top-0 z-30">
+<div class="flex items-center">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Sistema de Reportes de Multas</h2>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-primary cursor-pointer opacity-90 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Avatar" class="object-cover w-full h-full" data-alt="A professional headshot of an administrative clerk or government official, facing forward with a neutral, competent expression. The lighting is bright and even, typical of a modern office environment. The background is a soft, out-of-focus light gray. The person is wearing conservative business attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzqmOaEtUmR7O3MRPkip2PGTrj6I4BpflqaRDhrP2gjsNOFbHBDRN1iJsLw47lJPzbh2Dc07rLhbB2feVeJHG16JJyGASb_i6OgbkRFYWVMZSUgekv-417yVZPI1wDoeBgLi15YN-E7u7SPaOs1-eKn923Lkrfu4OWmb1ZdSWrwV9e5qvl1voTD_EdyVamk0_c9vkhDorLZ9jsJKPplEWry7PR862pakdFanp-vao1QO3PU9CIFxggew"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 p-margin-mobile md:p-margin-desktop bg-surface max-w-[1280px] mx-auto w-full">
+<div class="mb-lg">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-xs">Generación de Reportes de Multas</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Filtre y descargue reportes detallados del sistema.</p>
+</div>
+<!-- Filter Bar -->
+<section class="bg-surface-container-lowest rounded-lg border border-outline-variant p-md mb-lg">
+<form class="grid grid-cols-1 md:grid-cols-4 gap-md items-end">
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="date-from">FECHA DESDE</label>
+<input class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" id="date-from" type="date"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="date-to">FECHA HASTA</label>
+<input class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" id="date-to" type="date"/>
+</div>
+<div class="flex flex-col gap-xs">
+<label class="font-label-caps text-label-caps text-on-surface-variant" for="status">ESTADO</label>
+<select class="font-body-sm text-body-sm bg-surface border border-outline-variant rounded-DEFAULT px-sm py-xs text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all appearance-none" id="status">
+<option value="all">Todos</option>
+<option value="pending">Pendiente</option>
+<option value="paid">Pagado</option>
+<option value="void">Anulado</option>
+</select>
+</div>
+<div class="flex gap-sm h-[38px]">
+<button class="flex-1 bg-surface border border-primary text-primary font-headline-md text-body-sm rounded-DEFAULT hover:bg-surface-container transition-colors flex items-center justify-center font-semibold" type="button">
+                            Filtrar
+                        </button>
+</div>
+</form>
+</section>
+<!-- Actions & Table Header -->
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-headline-md text-headline-md text-on-surface">Resultados del Reporte</h3>
+<button class="bg-primary text-on-primary font-headline-md text-body-sm px-md py-xs rounded-DEFAULT hover:bg-primary-container transition-colors shadow-sm flex items-center gap-xs font-semibold">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                    Descargar PDF
+                </button>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[800px]">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">ID MULTA</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">CIUDADANO</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">FECHA</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">VALOR</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant">ESTADO</th>
+<th class="px-md py-sm font-label-caps text-label-caps text-on-surface-variant text-right">ACCIONES</th>
+</tr>
+</thead>
+<tbody class="font-body-sm text-body-sm text-on-surface">
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant/50 hover:bg-surface-container-lowest/50 transition-colors">
+<td class="px-md py-sm font-medium">#MLT-2023-0891</td>
+<td class="px-md py-sm">Juan Pérez Gómez</td>
+<td class="px-md py-sm">12 Oct 2023</td>
+<td class="px-md py-sm font-medium">$120.00</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-tertiary-fixed text-tertiary">
+                                    Pendiente
+                                </span>
+</td>
+<td class="px-md py-sm text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Ver Detalle">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant/50 hover:bg-surface-container-lowest/50 transition-colors">
+<td class="px-md py-sm font-medium">#MLT-2023-0890</td>
+<td class="px-md py-sm">María López Ruiz</td>
+<td class="px-md py-sm">10 Oct 2023</td>
+<td class="px-md py-sm font-medium">$45.50</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-surface-container-high text-primary">
+                                    Pagado
+                                </span>
+</td>
+<td class="px-md py-sm text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Ver Detalle">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant/50 hover:bg-surface-container-lowest/50 transition-colors">
+<td class="px-md py-sm font-medium">#MLT-2023-0889</td>
+<td class="px-md py-sm">Carlos Mendoza V.</td>
+<td class="px-md py-sm">08 Oct 2023</td>
+<td class="px-md py-sm font-medium">$250.00</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-error-container text-on-error-container">
+                                    Anulado
+                                </span>
+</td>
+<td class="px-md py-sm text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Ver Detalle">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="border-b border-outline-variant/50 hover:bg-surface-container-lowest/50 transition-colors">
+<td class="px-md py-sm font-medium">#MLT-2023-0888</td>
+<td class="px-md py-sm">Ana Torres Silva</td>
+<td class="px-md py-sm">05 Oct 2023</td>
+<td class="px-md py-sm font-medium">$60.00</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-surface-container-high text-primary">
+                                    Pagado
+                                </span>
+</td>
+<td class="px-md py-sm text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Ver Detalle">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors">
+<td class="px-md py-sm font-medium">#MLT-2023-0887</td>
+<td class="px-md py-sm">Luis Castro D.</td>
+<td class="px-md py-sm">01 Oct 2023</td>
+<td class="px-md py-sm font-medium">$180.00</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-semibold bg-tertiary-fixed text-tertiary">
+                                    Pendiente
+                                </span>
+</td>
+<td class="px-md py-sm text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Ver Detalle">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination (Simple) -->
+<div class="px-md py-sm border-t border-outline-variant flex items-center justify-between bg-surface">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando 1 a 5 de 142 registros</span>
+<div class="flex gap-base">
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT border border-outline-variant text-on-surface-variant hover:bg-surface-container disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT bg-primary text-on-primary font-body-sm">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT border border-outline-variant text-on-surface-variant hover:bg-surface-container font-body-sm">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT border border-outline-variant text-on-surface-variant hover:bg-surface-container font-body-sm">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-DEFAULT border border-outline-variant text-on-surface-variant hover:bg-surface-container">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

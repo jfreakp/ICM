@@ -1,0 +1,77 @@
+<app-shell activeRoute="infracciones">
+  <div class="flex justify-between items-center mb-lg">
+    <h2 class="font-display-lg text-display-lg text-on-surface">Infracciones</h2>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="buscar()" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md mb-lg flex flex-wrap items-end gap-md">
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="fecha-desde">Fecha desde</label>
+      <input id="fecha-desde" type="date" formControlName="fechaDesde" (change)="onFechaChange()" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+    </div>
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="fecha-hasta">Fecha hasta</label>
+      <input id="fecha-hasta" type="date" formControlName="fechaHasta" (change)="onFechaChange()" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+    </div>
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="estado">Estado</label>
+      <select id="estado" formControlName="estado" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm">
+        <option value="">Todos</option>
+        @for (estado of (estados$ | async); track estado) {
+          <option [value]="estado">{{ estado }}</option>
+        }
+      </select>
+    </div>
+    <button type="submit" [disabled]="form.invalid || !!(rangeError$ | async)" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+      Filtrar
+    </button>
+  </form>
+
+  @if (rangeError$ | async; as rangeError) {
+    <p class="text-error text-body-sm mb-md">{{ rangeError }}</p>
+  }
+  @if (error$ | async; as error) {
+    <p class="text-error text-body-sm mb-md">{{ error }}</p>
+  }
+
+  @if (loading$ | async) {
+    <p class="text-on-surface-variant text-body-sm">Cargando...</p>
+  } @else if (resultado$ | async; as resultado) {
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+      <div class="p-md border-b border-outline-variant flex justify-end gap-sm bg-surface-bright">
+        <button type="button" data-testid="descargar-csv" [disabled]="resultado.total === 0" (click)="descargar('csv')" class="text-primary hover:underline font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline">Descargar CSV</button>
+        <button type="button" data-testid="descargar-excel" [disabled]="resultado.total === 0" (click)="descargar('xlsx')" class="text-primary hover:underline font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline">Descargar Excel</button>
+      </div>
+      @if (resultado.total === 0) {
+        <p class="p-md text-on-surface-variant text-body-sm">No hay infracciones para estos filtros</p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low border-b border-outline-variant">
+              <tr>
+                @for (columna of columnas; track columna.clave) {
+                  <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant whitespace-nowrap">{{ columna.encabezado }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
+              @for (item of resultado.items; track item.id) {
+                <tr class="hover:bg-surface-container-lowest/50 transition-colors">
+                  @for (columna of columnas; track columna.clave) {
+                    <td class="py-3 px-md text-on-surface-variant whitespace-nowrap">{{ item[columna.clave] }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-bright">
+          <span class="font-body-sm text-body-sm text-on-surface-variant">Página {{ resultado.page }} — {{ resultado.total }} resultados</span>
+          <div class="flex gap-sm">
+            <button type="button" data-testid="pagina-anterior" [disabled]="resultado.page <= 1" (click)="cambiarPagina(resultado.page - 1)" class="px-3 py-1 border border-outline-variant rounded-DEFAULT font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+            <button type="button" data-testid="pagina-siguiente" [disabled]="resultado.page * resultado.page_size >= resultado.total" (click)="cambiarPagina(resultado.page + 1)" class="px-3 py-1 border border-outline-variant rounded-DEFAULT font-body-sm text-body-sm disabled:opacity-50 disabled:cursor-not-allowed">Siguiente</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</app-shell>

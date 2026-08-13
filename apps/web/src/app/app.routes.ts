@@ -1,0 +1,19 @@
+import { Routes } from '@angular/router';
+import { authGuard } from './core/auth.guard';
+import { LoginComponent } from './features/login/login.component';
+import { HomeComponent } from './features/home/home.component';
+import { ImpugnacionesComponent } from './features/reportes/impugnaciones/impugnaciones.component';
+import { InfraccionesComponent } from './features/reportes/infracciones/infracciones.component';
+import { AdministracionUsuariosComponent } from './features/administracion-usuarios/administracion-usuarios.component';
+import { AuditoriaComponent } from './features/auditoria/auditoria.component';
+
+export const routes: Routes = [
+  { path: 'login', component: LoginComponent },
+  { path: 'home', component: HomeComponent, canActivate: [authGuard] },
+  { path: 'reportes/impugnaciones', component: ImpugnacionesComponent, canActivate: [authGuard] },
+  { path: 'reportes/infracciones', component: InfraccionesComponent, canActivate: [authGuard] },
+  { path: 'usuarios', component: AdministracionUsuariosComponent, canActivate: [authGuard] },
+  { path: 'auditoria', component: AuditoriaComponent, canActivate: [authGuard] },
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: '**', redirectTo: 'home' },
+];
