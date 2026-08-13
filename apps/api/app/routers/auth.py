@@ -5,10 +5,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.audit import registrar_evento
-from app.auth import create_access_token, decode_access_token, verify_password
+from app.auth import create_access_token, decode_access_token, hash_password, verify_password
 from app.database import get_db
 from app.models import User
-from app.schemas import LoginRequest, TokenResponse, UpdateAllowedIpRequest, UserListItem, UserOut
+from app.schemas import (
+    CreateUserRequest,
+    LoginRequest,
+    ResetPasswordRequest,
+    TokenResponse,
+    UpdateAllowedIpRequest,
+    UserListItem,
+    UserOut,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -61,7 +69,7 @@ async def require_admin(current_user: User = Depends(get_current_user)) -> User:
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)) -> TokenResponse:
     client_ip = get_client_ip(request)
-    user = await db.scalar(select(User).where(User.email == payload.email))
+    user = await db.scalar(select(User).where(User.email == payload.email.lower()))
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
         await registrar_evento(
             db,
@@ -124,6 +132,44 @@ async def list_users(
     return [UserListItem.model_validate(u) for u in result.all()]
 
 
+@router.post("/users", response_model=UserListItem, status_code=status.HTTP_201_CREATED)
+async def create_user(
+    payload: CreateUserRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+) -> UserListItem:
+    existing = await db.scalar(select(User).where(User.email == payload.email.lower()))
+    if existing is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya existe un usuario con ese email",
+        )
+    user = User(
+        email=payload.email.lower(),
+        password_hash=hash_password(payload.password),
+        full_name=payload.full_name,
+        is_admin=payload.is_admin,
+    )
+    db.add(user)
+    await db.flush()
+    await registrar_evento(
+        db,
+        user_id=admin.id,
+        user_email=admin.email,
+        action="usuarios.create_user",
+        ip_address=get_client_ip(request),
+        details={
+            "usuario_creado_id": user.id,
+            "usuario_creado_email": user.email,
+            "es_admin": user.is_admin,
+        },
+    )
+    await db.commit()
+    await db.refresh(user)
+    return UserListItem.model_validate(user)
+
+
 @router.patch("/users/{user_id}/allowed-ip", response_model=UserListItem)
 async def update_allowed_ip(
     user_id: int,
@@ -148,6 +194,31 @@ async def update_allowed_ip(
             "ip_anterior": ip_anterior,
             "ip_nueva": payload.allowed_ip,
         },
+    )
+    await db.commit()
+    await db.refresh(user)
+    return UserListItem.model_validate(user)
+
+
+@router.patch("/users/{user_id}/password", response_model=UserListItem)
+async def reset_password(
+    user_id: int,
+    payload: ResetPasswordRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_admin),
+) -> UserListItem:
+    user = await db.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+    user.password_hash = hash_password(payload.new_password)
+    await registrar_evento(
+        db,
+        user_id=admin.id,
+        user_email=admin.email,
+        action="usuarios.reset_password",
+        ip_address=get_client_ip(request),
+        details={"usuario_objetivo_id": user.id},
     )
     await db.commit()
     await db.refresh(user)

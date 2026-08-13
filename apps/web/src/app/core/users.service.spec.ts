@@ -50,4 +50,43 @@ describe('UsersService', () => {
 
     expect(result?.allowed_ip).toBeNull();
   });
+
+  it('createUser POSTs the new user payload and returns the created user', () => {
+    let result: UserListItem | undefined;
+    service
+      .createUser({ email: 'nuevo@example.com', full_name: 'Nuevo Usuario', password: 'Sup3rSecret!', is_admin: false })
+      .subscribe((user) => (result = user));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/auth/users`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({
+      email: 'nuevo@example.com',
+      full_name: 'Nuevo Usuario',
+      password: 'Sup3rSecret!',
+      is_admin: false,
+    });
+    const created: UserListItem = {
+      id: 3,
+      email: 'nuevo@example.com',
+      full_name: 'Nuevo Usuario',
+      is_admin: false,
+      is_active: true,
+      allowed_ip: null,
+    };
+    req.flush(created);
+
+    expect(result).toEqual(created);
+  });
+
+  it('resetPassword PATCHes the new password for the given user', () => {
+    let result: UserListItem | undefined;
+    service.resetPassword(1, 'NuevaClave123!').subscribe((user) => (result = user));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/auth/users/1/password`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ new_password: 'NuevaClave123!' });
+    req.flush(sampleUser);
+
+    expect(result).toEqual(sampleUser);
+  });
 });

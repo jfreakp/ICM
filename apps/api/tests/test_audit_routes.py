@@ -476,3 +476,51 @@ async def test_infracciones_export_creates_audit_event_with_row_count(client, db
     assert log is not None
     assert log.details["formato"] == "csv"
     assert log.details["filas_exportadas"] == 1
+
+
+@pytest.mark.asyncio
+async def test_create_user_creates_audit_event(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "auditado@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Usuario Auditado",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 201
+    created_id = response.json()["id"]
+    log = await _last_audit_log(db_session, "usuarios.create_user")
+    assert log is not None
+    assert log.user_email == admin.email
+    assert log.details == {
+        "usuario_creado_id": created_id,
+        "usuario_creado_email": "auditado@example.com",
+        "es_admin": False,
+    }
+
+
+@pytest.mark.asyncio
+async def test_reset_password_creates_audit_event_without_leaking_password(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    target = await _create_user(db_session, email="auditreset@example.com")
+
+    response = await client.patch(
+        f"/api/auth/users/{target.id}/password",
+        json={"new_password": "NuevaClave123!"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    log = await _last_audit_log(db_session, "usuarios.reset_password")
+    assert log is not None
+    assert log.user_email == admin.email
+    assert log.details == {"usuario_objetivo_id": target.id}
+    assert "NuevaClave123!" not in str(log.details)

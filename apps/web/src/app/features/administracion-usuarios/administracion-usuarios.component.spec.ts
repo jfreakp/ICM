@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { vi } from 'vitest';
@@ -6,10 +7,17 @@ import { AdministracionUsuariosComponent } from './administracion-usuarios.compo
 import { AuthService } from '../../core/auth.service';
 import { UsersService } from '../../core/users.service';
 import { UserListItem } from '../../core/models/user-list-item.model';
+import { NuevoUsuarioModalComponent } from './nuevo-usuario-modal.component';
+import { ResetearContrasenaModalComponent } from './resetear-contrasena-modal.component';
 
 describe('AdministracionUsuariosComponent', () => {
   let fixture: ComponentFixture<AdministracionUsuariosComponent>;
-  let usersService: { listUsers: ReturnType<typeof vi.fn>; updateAllowedIp: ReturnType<typeof vi.fn> };
+  let usersService: {
+    listUsers: ReturnType<typeof vi.fn>;
+    updateAllowedIp: ReturnType<typeof vi.fn>;
+    createUser: ReturnType<typeof vi.fn>;
+    resetPassword: ReturnType<typeof vi.fn>;
+  };
 
   const usuarios: UserListItem[] = [
     { id: 1, email: 'ana.silva@icmloja.gob.ec', full_name: 'Ana Silva Pérez', is_admin: true, is_active: true, allowed_ip: '10.0.0.5' },
@@ -20,6 +28,8 @@ describe('AdministracionUsuariosComponent', () => {
     usersService = {
       listUsers: vi.fn().mockReturnValue(of(usuarios)),
       updateAllowedIp: vi.fn().mockReturnValue(of({ ...usuarios[0], allowed_ip: null })),
+      createUser: vi.fn(),
+      resetPassword: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -50,6 +60,24 @@ describe('AdministracionUsuariosComponent', () => {
   it('calls updateAllowedIp with null when resetting a user IP', () => {
     fixture.componentInstance.resetAllowedIp(usuarios[0]);
     expect(usersService.updateAllowedIp).toHaveBeenCalledWith(1, null);
+  });
+
+  it('opens the new-user modal when "Nuevo Usuario" is clicked', () => {
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="nuevo-usuario-btn"]');
+    button.click();
+    fixture.detectChanges();
+
+    const modal = fixture.nativeElement.querySelector('app-nuevo-usuario-modal');
+    expect(modal).not.toBeNull();
+  });
+
+  it('opens the reset-password modal for the clicked row', () => {
+    const button: HTMLButtonElement = fixture.nativeElement.querySelectorAll('[data-testid="resetear-clave-btn"]')[0];
+    button.click();
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Resetear contraseña de Ana Silva Pérez');
   });
 
   describe('async rendering under zoneless change detection', () => {
@@ -101,6 +129,58 @@ describe('AdministracionUsuariosComponent', () => {
       expect(text).toContain('Ana Silva Pérez');
       expect(text).toContain('Carlos Mendoza');
       expect(text).toContain('Mostrando 2 de 2 usuarios');
+    });
+
+    it('closes the new-user modal and reloads the list once creado fires and the deferred response arrives', async () => {
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="nuevo-usuario-btn"]');
+      button.click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('app-nuevo-usuario-modal')).not.toBeNull();
+
+      const reload$ = new Subject<UserListItem[]>();
+      usersService.listUsers.mockReturnValue(reload$);
+
+      const modal = fixture.debugElement.query(By.directive(NuevoUsuarioModalComponent));
+      const created: UserListItem = { id: 3, email: 'nuevo@example.com', full_name: 'Nuevo Usuario', is_admin: false, is_active: true, allowed_ip: null };
+      modal.componentInstance.creado.emit(created);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-nuevo-usuario-modal')).toBeNull();
+
+      const nuevaLista: UserListItem[] = [
+        ...usuarios,
+        { id: 3, email: 'nuevo@example.com', full_name: 'Nuevo Usuario', is_admin: false, is_active: true, allowed_ip: null },
+      ];
+      reload$.next(nuevaLista);
+      await fixture.whenStable();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('nuevo@example.com');
+      expect(text).toContain('Mostrando 3 de 3 usuarios');
+    });
+
+    it('closes the new-user modal when the real child emits cancelado', () => {
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="nuevo-usuario-btn"]');
+      button.click();
+      fixture.detectChanges();
+
+      const modal = fixture.debugElement.query(By.directive(NuevoUsuarioModalComponent));
+      modal.componentInstance.cancelado.emit();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-nuevo-usuario-modal')).toBeNull();
+    });
+
+    it('closes the reset-password modal when the real child emits reseteado', () => {
+      const button: HTMLButtonElement = fixture.nativeElement.querySelectorAll('[data-testid="resetear-clave-btn"]')[0];
+      button.click();
+      fixture.detectChanges();
+
+      const modal = fixture.debugElement.query(By.directive(ResetearContrasenaModalComponent));
+      modal.componentInstance.reseteado.emit();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-resetear-contrasena-modal')).toBeNull();
     });
   });
 

@@ -9,6 +9,7 @@ from app.models import User
 
 
 async def create_user(email: str, password: str, full_name: str) -> None:
+    email = email.lower()
     async with async_session_maker() as session:
         existing = await session.scalar(select(User).where(User.email == email))
         if existing is not None:

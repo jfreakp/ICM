@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import select
 
 from app.auth import create_access_token, hash_password
 from app.models import User
@@ -289,3 +290,301 @@ async def test_admin_reset_allowed_ip_for_unknown_user_returns_404(client, db_se
     )
 
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_admin_can_create_user(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "nuevo@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Nuevo Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["email"] == "nuevo@example.com"
+    assert body["full_name"] == "Nuevo Usuario"
+    assert body["is_admin"] is False
+    assert body["is_active"] is True
+    assert body["allowed_ip"] is None
+    assert "password" not in body
+    assert "password_hash" not in body
+
+
+@pytest.mark.asyncio
+async def test_created_user_password_is_hashed_and_usable_for_login(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    await client.post(
+        "/api/auth/users",
+        json={
+            "email": "nuevo2@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Nuevo Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    result = await db_session.execute(select(User).where(User.email == "nuevo2@example.com"))
+    created = result.scalar_one()
+    assert created.password_hash != "Sup3rSecret!"
+
+    login_response = await client.post(
+        "/api/auth/login", json={"email": "nuevo2@example.com", "password": "Sup3rSecret!"}
+    )
+    assert login_response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_admin_can_create_admin_user(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "nuevoadmin@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Nuevo Admin",
+            "is_admin": True,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["is_admin"] is True
+
+
+@pytest.mark.asyncio
+async def test_create_user_with_duplicate_email_returns_409(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    await _create_user(db_session, email="existente@example.com")
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "existente@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Otro Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_non_admin_cannot_create_user(client, db_session):
+    user = await _create_user(db_session, email="empleado@example.com")
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "otro@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Otro Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "admin_required"
+
+
+@pytest.mark.asyncio
+async def test_create_user_without_token_returns_401(client, db_session):
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "sinauth@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Sin Auth",
+            "is_admin": False,
+        },
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_create_user_with_short_password_returns_422(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "cortita@example.com",
+            "password": "short",
+            "full_name": "Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_user_with_password_over_72_bytes_returns_422(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "largo@example.com",
+            "password": "x" * 100,
+            "full_name": "Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_user_email_duplicate_check_is_case_insensitive(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    await _create_user(db_session, email="persona@example.com")
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "Persona@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Otra Persona",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_login_is_case_insensitive_on_email(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    await client.post(
+        "/api/auth/users",
+        json={
+            "email": "MixedCase@example.com",
+            "password": "Sup3rSecret!",
+            "full_name": "Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    response = await client.post(
+        "/api/auth/login", json={"email": "mixedcase@example.com", "password": "Sup3rSecret!"}
+    )
+    assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_admin_can_reset_password(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    target = await _create_user(db_session, email="resetear@example.com", password="Original123!")
+
+    response = await client.patch(
+        f"/api/auth/users/{target.id}/password",
+        json={"new_password": "NuevaClave123!"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    assert "password" not in response.json()
+    assert "password_hash" not in response.json()
+
+    old_login = await client.post(
+        "/api/auth/login", json={"email": "resetear@example.com", "password": "Original123!"}
+    )
+    assert old_login.status_code == 401
+
+    new_login = await client.post(
+        "/api/auth/login", json={"email": "resetear@example.com", "password": "NuevaClave123!"}
+    )
+    assert new_login.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_reset_password_for_unknown_user_returns_404(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.patch(
+        "/api/auth/users/9999/password",
+        json={"new_password": "NuevaClave123!"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_non_admin_cannot_reset_password(client, db_session):
+    user = await _create_user(db_session, email="empleado2@example.com")
+    other = await _create_user(db_session, email="otroempleado@example.com")
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.patch(
+        f"/api/auth/users/{other.id}/password",
+        json={"new_password": "NuevaClave123!"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "admin_required"
+
+
+@pytest.mark.asyncio
+async def test_reset_password_with_short_password_returns_422(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+    target = await _create_user(db_session, email="cortita2@example.com")
+
+    response = await client.patch(
+        f"/api/auth/users/{target.id}/password",
+        json={"new_password": "short"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_user_with_multibyte_password_over_72_bytes_does_not_crash(client, db_session):
+    admin = await _create_admin(db_session)
+    admin_token = create_access_token(user_id=admin.id, email=admin.email)
+
+    response = await client.post(
+        "/api/auth/users",
+        json={
+            "email": "multibyte@example.com",
+            "password": "ñ" * 72,
+            "full_name": "Usuario",
+            "is_admin": False,
+        },
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 201

@@ -50,3 +50,15 @@ def test_decode_access_token_rejects_expired_token():
 def test_verify_password_returns_false_for_overlong_password():
     hashed = hash_password("short-password")
     assert verify_password("x" * 100, hashed) is False
+
+
+def test_hash_and_verify_password_stay_consistent_for_passwords_over_72_bytes():
+    long_password = "ñ" * 72  # 72 chars, 144 bytes
+    hashed = hash_password(long_password)
+    assert verify_password(long_password, hashed) is True
+    # Differ on the first character (byte offset 0) so the difference falls
+    # inside the 72-byte truncation window. Note: differing only on the last
+    # character would NOT work here, since "ñ" is 2 bytes and 72 is evenly
+    # divisible by 2 — a change at char 72 lands at byte offset 142, past the
+    # 72-byte boundary, so both strings would truncate identically.
+    assert verify_password("x" + "ñ" * 71, hashed) is False

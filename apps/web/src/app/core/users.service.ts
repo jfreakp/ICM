@@ -17,4 +17,19 @@ export class UsersService {
       allowed_ip: allowedIp,
     });
   }
+
+  createUser(payload: {
+    email: string;
+    full_name: string;
+    password: string;
+    is_admin: boolean;
+  }): Observable<UserListItem> {
+    return this.http.post<UserListItem>(`${environment.apiUrl}/auth/users`, payload);
+  }
+
+  resetPassword(userId: number, newPassword: string): Observable<UserListItem> {
+    return this.http.patch<UserListItem>(`${environment.apiUrl}/auth/users/${userId}/password`, {
+      new_password: newPassword,
+    });
+  }
 }

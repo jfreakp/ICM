@@ -1,7 +1,7 @@
 <app-shell activeRoute="usuarios">
   <div class="flex justify-between items-center mb-lg">
     <h2 class="font-display-lg text-display-lg text-on-surface">Administración de Usuarios</h2>
-    <button type="button" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold flex items-center gap-2 transition-colors shadow-sm">
+    <button type="button" data-testid="nuevo-usuario-btn" (click)="abrirModalNuevoUsuario()" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold flex items-center gap-2 transition-colors shadow-sm">
       <span class="material-symbols-outlined text-[18px]">add</span>
       Nuevo Usuario
     </button>
@@ -42,15 +42,25 @@
                 </td>
                 <td class="py-3 px-md text-on-surface-variant">{{ usuario.allowed_ip ?? 'Sin anclar' }}</td>
                 <td class="py-3 px-md">
-                  @if (usuario.allowed_ip) {
+                  <div class="flex items-center gap-sm">
+                    @if (usuario.allowed_ip) {
+                      <button
+                        type="button"
+                        (click)="resetAllowedIp(usuario)"
+                        class="text-primary hover:underline font-body-sm text-body-sm"
+                      >
+                        Resetear IP
+                      </button>
+                    }
                     <button
                       type="button"
-                      (click)="resetAllowedIp(usuario)"
+                      data-testid="resetear-clave-btn"
+                      (click)="abrirModalResetearClave(usuario)"
                       class="text-primary hover:underline font-body-sm text-body-sm"
                     >
-                      Resetear IP
+                      Resetear Contraseña
                     </button>
-                  }
+                  </div>
                 </td>
               </tr>
             }
@@ -62,4 +72,19 @@
       </div>
     }
   </div>
+
+  @if (mostrarModalNuevoUsuario) {
+    <app-nuevo-usuario-modal
+      (creado)="onUsuarioCreado()"
+      (cancelado)="cerrarModalNuevoUsuario()"
+    ></app-nuevo-usuario-modal>
+  }
+
+  @if (usuarioParaResetearClave) {
+    <app-resetear-contrasena-modal
+      [usuario]="usuarioParaResetearClave"
+      (reseteado)="onClaveReseteada()"
+      (cancelado)="cerrarModalResetearClave()"
+    ></app-resetear-contrasena-modal>
+  }
 </app-shell>

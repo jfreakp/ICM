@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class LoginRequest(BaseModel):
@@ -35,6 +35,17 @@ class UserListItem(BaseModel):
 
 class UpdateAllowedIpRequest(BaseModel):
     allowed_ip: str | None
+
+
+class CreateUserRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=72)
+    full_name: str = Field(min_length=1)
+    is_admin: bool = False
+
+
+class ResetPasswordRequest(BaseModel):
+    new_password: str = Field(min_length=8, max_length=72)
 
 
 class ImpugnacionItem(BaseModel):
