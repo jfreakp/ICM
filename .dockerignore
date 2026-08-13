@@ -1,0 +1,15 @@
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.env
+**/.env.local
+apps/api/tests/
+apps/api/.pytest_cache/
+apps/api/matriculacion_api.egg-info/
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.angular/
+.git/
+.superpowers/
+docs/
+desing/

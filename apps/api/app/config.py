@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_expire_minutes: int = 480
     cors_origins: str = "http://localhost:4200"
+    static_dir: str = "static"
 
     @property
     def cors_origins_list(self) -> list[str]:
