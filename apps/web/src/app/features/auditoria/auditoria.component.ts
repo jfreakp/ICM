@@ -16,6 +16,8 @@ export const ACCIONES: { value: string; label: string }[] = [
   { value: 'auth.logout', label: 'Cierre de sesión' },
   { value: 'reportes.impugnaciones.search', label: 'Búsqueda de impugnaciones' },
   { value: 'reportes.impugnaciones.export', label: 'Descarga de impugnaciones' },
+  { value: 'reportes.infracciones.search', label: 'Búsqueda de infracciones' },
+  { value: 'reportes.infracciones.export', label: 'Descarga de infracciones' },
   { value: 'usuarios.update_allowed_ip', label: 'Cambio de IP permitida' },
 ];
 

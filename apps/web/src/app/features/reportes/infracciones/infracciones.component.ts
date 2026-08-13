@@ -1,0 +1,182 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
+import { AppShellComponent } from '../../../shared/app-shell/app-shell.component';
+import { InfraccionesService } from '../../../core/infracciones.service';
+import { InfraccionFilters, InfraccionItem, InfraccionListResponse } from '../../../core/models/infraccion.model';
+
+const RANGE_ERROR_MESSAGE = 'El rango de fechas debe estar dentro del mismo mes calendario.';
+const ORDER_ERROR_MESSAGE = 'La fecha desde no puede ser posterior a la fecha hasta.';
+const LOAD_ERROR_MESSAGE = 'No se pudieron cargar las infracciones. Intenta de nuevo.';
+
+export interface ColumnaInfraccion {
+  clave: keyof InfraccionItem;
+  encabezado: string;
+}
+
+export const COLUMNAS: ColumnaInfraccion[] = [
+  { clave: 'registro', encabezado: 'Registro' },
+  { clave: 'fecha_registro', encabezado: 'Fecha de Registro' },
+  { clave: 'fecha_emision', encabezado: 'Fecha de Emisión' },
+  { clave: 'fecha_aprobacion', encabezado: 'Fecha de Aprobación' },
+  { clave: 'fecha_vencimiento', encabezado: 'Fecha de Vencimiento' },
+  { clave: 'estado', encabezado: 'Estado' },
+  { clave: 'codigo_infraccion', encabezado: 'Código de Infracción' },
+  { clave: 'codigo_infraccion_ant', encabezado: 'Código de Infracción Anterior' },
+  { clave: 'contravencion', encabezado: 'Contravención' },
+  { clave: 'articulo', encabezado: 'Artículo' },
+  { clave: 'literal', encabezado: 'Literal' },
+  { clave: 'descripcion_articulo', encabezado: 'Descripción del Artículo' },
+  { clave: 'periodo_fiscal', encabezado: 'Período Fiscal' },
+  { clave: 'oficina', encabezado: 'Oficina' },
+  { clave: 'origen_registro', encabezado: 'Origen de Registro' },
+  { clave: 'tipo_registro_infraccion', encabezado: 'Tipo de Registro' },
+  { clave: 'tipo_emision', encabezado: 'Tipo de Emisión' },
+  { clave: 'tipo_deudor', encabezado: 'Tipo de Deudor' },
+  { clave: 'codigo_usuario_registra', encabezado: 'Usuario que Registra' },
+  { clave: 'observacion', encabezado: 'Observación' },
+  { clave: 'provincia', encabezado: 'Provincia' },
+  { clave: 'localidad', encabezado: 'Localidad' },
+  { clave: 'lugar_infraccion', encabezado: 'Lugar de Infracción' },
+  { clave: 'canal', encabezado: 'Canal' },
+  { clave: 'placa', encabezado: 'Placa' },
+  { clave: 'tipo_identificacion_infractor', encabezado: 'Tipo de Identificación (Infractor)' },
+  { clave: 'numero_identificacion_infractor', encabezado: 'Número de Identificación (Infractor)' },
+  { clave: 'nombre_infractor', encabezado: 'Nombre del Infractor' },
+  { clave: 'tipo_identificacion_propietario', encabezado: 'Tipo de Identificación (Propietario)' },
+  { clave: 'numero_identificacion_propietario', encabezado: 'Número de Identificación (Propietario)' },
+  { clave: 'nombre_propietario', encabezado: 'Nombre del Propietario' },
+  { clave: 'indicador_bloqueada', encabezado: 'Bloqueada' },
+  { clave: 'indicador_acta_juzgamiento', encabezado: 'Acta de Juzgamiento' },
+  { clave: 'indicador_modificada', encabezado: 'Modificada' },
+  { clave: 'indicador_calcula_recargo', encabezado: 'Calcula Recargo' },
+  { clave: 'valor_capital', encabezado: 'Valor Capital' },
+  { clave: 'valor_capital_exonerado', encabezado: 'Valor Capital Exonerado' },
+  { clave: 'valor_recargo', encabezado: 'Valor Recargo' },
+  { clave: 'valor_recargo_exonerado', encabezado: 'Valor Recargo Exonerado' },
+  { clave: 'valor_intereses', encabezado: 'Valor Intereses' },
+  { clave: 'valor_total', encabezado: 'Valor Total' },
+];
+
+@Component({
+  selector: 'app-infracciones',
+  standalone: true,
+  imports: [AsyncPipe, ReactiveFormsModule, AppShellComponent],
+  templateUrl: './infracciones.component.html',
+})
+export class InfraccionesComponent implements OnInit {
+  private readonly infraccionesService = inject(InfraccionesService);
+  private readonly fb = inject(FormBuilder);
+
+  readonly columnas = COLUMNAS;
+
+  readonly form = this.fb.nonNullable.group({
+    fechaDesde: ['', Validators.required],
+    fechaHasta: ['', Validators.required],
+    estado: [''],
+  });
+
+  private readonly estadosSubject = new BehaviorSubject<string[]>([]);
+  readonly estados$ = this.estadosSubject.asObservable();
+
+  private readonly resultadoSubject = new BehaviorSubject<InfraccionListResponse | null>(null);
+  readonly resultado$ = this.resultadoSubject.asObservable();
+
+  private readonly loadingSubject = new BehaviorSubject<boolean>(false);
+  readonly loading$ = this.loadingSubject.asObservable();
+
+  private readonly errorSubject = new BehaviorSubject<string | null>(null);
+  readonly error$ = this.errorSubject.asObservable();
+
+  private readonly rangeErrorSubject = new BehaviorSubject<string | null>(null);
+  readonly rangeError$ = this.rangeErrorSubject.asObservable();
+
+  private filtrosVigentes: InfraccionFilters | null = null;
+
+  ngOnInit(): void {
+    this.infraccionesService.getEstados().subscribe({
+      next: (estados) => this.estadosSubject.next(estados),
+      error: () => this.errorSubject.next(LOAD_ERROR_MESSAGE),
+    });
+  }
+
+  onFechaChange(): void {
+    const { fechaDesde, fechaHasta } = this.form.getRawValue();
+    if (fechaDesde && fechaHasta) {
+      this.rangoValido(fechaDesde, fechaHasta);
+    } else {
+      this.rangeErrorSubject.next(null);
+    }
+  }
+
+  private rangoValido(fechaDesde: string, fechaHasta: string): boolean {
+    const desde = new Date(fechaDesde);
+    const hasta = new Date(fechaHasta);
+    if (desde.getTime() > hasta.getTime()) {
+      this.rangeErrorSubject.next(ORDER_ERROR_MESSAGE);
+      return false;
+    }
+    if (desde.getUTCFullYear() !== hasta.getUTCFullYear() || desde.getUTCMonth() !== hasta.getUTCMonth()) {
+      this.rangeErrorSubject.next(RANGE_ERROR_MESSAGE);
+      return false;
+    }
+    this.rangeErrorSubject.next(null);
+    return true;
+  }
+
+  buscar(): void {
+    if (this.form.invalid) {
+      return;
+    }
+    const { fechaDesde, fechaHasta, estado } = this.form.getRawValue();
+    if (!this.rangoValido(fechaDesde, fechaHasta)) {
+      return;
+    }
+    this.filtrosVigentes = { fecha_desde: fechaDesde, fecha_hasta: fechaHasta, estado: estado || null };
+    this.cargarPagina(1);
+  }
+
+  cambiarPagina(page: number): void {
+    this.cargarPagina(page);
+  }
+
+  descargar(formato: 'csv' | 'xlsx'): void {
+    if (!this.filtrosVigentes) {
+      return;
+    }
+    const filtros = this.filtrosVigentes;
+    this.infraccionesService.exportInfracciones(filtros, formato).subscribe({
+      next: (blob) => this.disparaDescarga(blob, filtros, formato),
+      error: () => this.errorSubject.next('No se pudo descargar el archivo. Intenta de nuevo.'),
+    });
+  }
+
+  private disparaDescarga(blob: Blob, filtros: InfraccionFilters, formato: 'csv' | 'xlsx'): void {
+    const filename = `infracciones_${filtros.fecha_desde}_${filtros.fecha_hasta}.${formato}`;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private cargarPagina(page: number): void {
+    if (!this.filtrosVigentes) {
+      return;
+    }
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+    this.infraccionesService.listInfracciones(this.filtrosVigentes, page).subscribe({
+      next: (resultado) => {
+        this.resultadoSubject.next(resultado);
+        this.loadingSubject.next(false);
+      },
+      error: () => {
+        this.errorSubject.next(LOAD_ERROR_MESSAGE);
+        this.loadingSubject.next(false);
+      },
+    });
+  }
+}

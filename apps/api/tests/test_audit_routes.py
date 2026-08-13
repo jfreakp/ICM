@@ -399,3 +399,80 @@ async def test_list_auditoria_pagination_page_two_offset(client, db_session):
     assert len(body["items"]) == 5
     assert body["items"][0]["user_email"] == "user-004@example.com"
     assert body["items"][-1]["user_email"] == "user-000@example.com"
+
+
+INSERT_INFRACCION_SQL = text(
+    """
+    INSERT INTO axis.axis_infracciones
+        (registro, fecha_registro, estado)
+    VALUES
+        (:registro, :fecha_registro, :estado)
+    RETURNING id
+    """
+)
+
+
+def _infraccion_row(registro, fecha_registro, estado="EMITIDA"):
+    return {"registro": registro, "fecha_registro": fecha_registro, "estado": estado}
+
+
+async def _seed_infracciones_audit(db_session, rows):
+    for row in rows:
+        await db_session.execute(INSERT_INFRACCION_SQL, row)
+    await db_session.commit()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def _cleanup_audit_infracciones(db_session):
+    yield
+    await db_session.execute(text("DELETE FROM axis.axis_infracciones WHERE registro LIKE 'TEST-AUD-INF-%'"))
+    await db_session.commit()
+
+
+@pytest.mark.asyncio
+async def test_infracciones_search_creates_audit_event_with_filters_and_total(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_infracciones_audit(
+        db_session,
+        [
+            _infraccion_row("TEST-AUD-INF-001", datetime(2031, 6, 5), estado="EMITIDA"),
+            _infraccion_row("TEST-AUD-INF-002", datetime(2031, 6, 6), estado="EMITIDA"),
+        ],
+    )
+
+    response = await client.get(
+        "/api/reportes/infracciones",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30", "estado": "EMITIDA"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    log = await _last_audit_log(db_session, "reportes.infracciones.search")
+    assert log is not None
+    assert log.details == {
+        "fecha_desde": "2031-06-01",
+        "fecha_hasta": "2031-06-30",
+        "estado": "EMITIDA",
+        "page": 1,
+        "total": 2,
+    }
+
+
+@pytest.mark.asyncio
+async def test_infracciones_export_creates_audit_event_with_row_count(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_infracciones_audit(
+        db_session, [_infraccion_row("TEST-AUD-INF-101", datetime(2031, 7, 5), estado="EMITIDA")]
+    )
+
+    response = await client.get(
+        "/api/reportes/infracciones/export",
+        params={"fecha_desde": "2031-07-01", "fecha_hasta": "2031-07-31", "formato": "csv"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    log = await _last_audit_log(db_session, "reportes.infracciones.export")
+    assert log is not None
+    assert log.details["formato"] == "csv"
+    assert log.details["filas_exportadas"] == 1

@@ -3,7 +3,7 @@ import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 
-export type AppShellRoute = 'dashboard' | 'impugnaciones' | 'usuarios' | 'auditoria';
+export type AppShellRoute = 'dashboard' | 'impugnaciones' | 'infracciones' | 'usuarios' | 'auditoria';
 
 const ACTIVE_LINK_CLASS =
   'flex items-center gap-sm px-md py-sm text-secondary-fixed-dim border-l-4 border-secondary-fixed font-bold transition-colors duration-200';
@@ -28,7 +28,7 @@ export class AppShellComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.loadCurrentUser().subscribe();
-    if (this.activeRoute === 'impugnaciones') {
+    if (this.activeRoute === 'impugnaciones' || this.activeRoute === 'infracciones') {
       this.reportesExpanded = true;
     }
   }

@@ -119,5 +119,32 @@ describe('AppShellComponent', () => {
       expect(impugnacionesLink).not.toBeNull();
       expect(impugnacionesLink!.classList.contains('text-secondary-fixed-dim')).toBe(true);
     });
+
+    it('shows the Infracciones link once the Reportes submenu is expanded', () => {
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="reportes-toggle"]');
+      toggle.click();
+      fixture.detectChanges();
+
+      const infraccionesLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/infracciones"]'
+      );
+      expect(infraccionesLink).not.toBeNull();
+    });
+
+    it('auto-expands and highlights Infracciones when activeRoute is infracciones', () => {
+      createComponent('infracciones');
+
+      const infraccionesLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/infracciones"]'
+      );
+      expect(infraccionesLink).not.toBeNull();
+      expect(infraccionesLink!.classList.contains('text-secondary-fixed-dim')).toBe(true);
+
+      const impugnacionesLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/impugnaciones"]'
+      );
+      expect(impugnacionesLink).not.toBeNull();
+      expect(impugnacionesLink!.classList.contains('text-secondary-fixed-dim')).toBe(false);
+    });
   });
 });
