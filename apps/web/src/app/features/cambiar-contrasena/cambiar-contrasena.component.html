@@ -1,0 +1,61 @@
+<div class="min-h-screen flex items-center justify-center bg-surface p-margin-mobile md:p-margin-desktop font-body-lg text-body-lg text-on-surface">
+  <main class="w-full max-w-[440px] bg-surface-container-lowest rounded-xl border border-outline-variant shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-lg flex flex-col gap-lg">
+    <div class="flex flex-col items-center text-center gap-sm">
+      <div class="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant">
+        <span class="material-symbols-outlined text-primary text-[40px]">lock_reset</span>
+      </div>
+      <div>
+        <h1 class="font-headline-md text-headline-md text-on-surface">Cambiar Contraseña</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-base">Debes definir una nueva contraseña antes de continuar.</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-md">
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="current-password">Contraseña Actual</label>
+        <input
+          id="current-password"
+          type="password"
+          formControlName="currentPassword"
+          class="w-full h-12 px-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200"
+        />
+      </div>
+
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="new-password">Nueva Contraseña</label>
+        <input
+          id="new-password"
+          type="password"
+          formControlName="newPassword"
+          class="w-full h-12 px-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200"
+        />
+      </div>
+
+      <div class="flex flex-col gap-xs">
+        <label class="font-label-caps text-label-caps text-on-surface-variant uppercase" for="confirm-password">Confirmar Nueva Contraseña</label>
+        <input
+          id="confirm-password"
+          type="password"
+          formControlName="confirmPassword"
+          class="w-full h-12 px-4 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors duration-200"
+        />
+        @if (passwordMismatch) {
+          <p class="text-error text-body-sm">Las contraseñas no coinciden.</p>
+        }
+      </div>
+
+      @if (error$ | async; as error) {
+        <p class="text-error text-body-sm">{{ error }}</p>
+      }
+
+      <button
+        type="submit"
+        data-testid="guardar-cambiar-contrasena"
+        [disabled]="form.invalid"
+        class="mt-sm h-12 w-full bg-primary text-on-primary rounded-md font-headline-md text-headline-md hover:bg-primary-container active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Guardar Nueva Contraseña
+      </button>
+    </form>
+  </main>
+</div>

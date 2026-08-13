@@ -40,6 +40,17 @@ describe('LoginComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/home']);
   });
 
+  it('navigates to /cambiar-contrasena when the user must change their password', () => {
+    authService.login.mockReturnValue(
+      of({ id: 1, email: 'a@b.com', full_name: 'A', is_admin: false, must_change_password: true })
+    );
+    component.form.setValue({ email: 'a@b.com', password: 'secret' });
+
+    component.onSubmit();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/cambiar-contrasena']);
+  });
+
   it('shows an error message on failed login', () => {
     authService.login.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 401, error: { detail: 'Credenciales inválidas' } }))

@@ -46,7 +46,7 @@ export class LoginComponent implements OnInit {
     }
     const { email, password } = this.form.getRawValue();
     this.authService.login(email, password).subscribe({
-      next: () => this.router.navigate(['/home']),
+      next: (user) => this.router.navigate([user.must_change_password ? '/cambiar-contrasena' : '/home']),
       error: (err: HttpErrorResponse) => {
         const detail = err.error?.detail as string | StructuredErrorDetail | undefined;
         if (err.status === 403 && typeof detail === 'object' && detail?.code === 'ip_not_allowed') {

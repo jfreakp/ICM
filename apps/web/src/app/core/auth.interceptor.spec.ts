@@ -115,4 +115,31 @@ describe('authInterceptor', () => {
     expect(authService.logout).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();
   });
+
+  it('redirects to /cambiar-contrasena without logging out on a 403 password_change_required response', () => {
+    authService.getToken.mockReturnValue('fake-token');
+
+    http.get('/api/reportes/impugnaciones/estados').subscribe({ error: () => {} });
+
+    const req = httpMock.expectOne('/api/reportes/impugnaciones/estados');
+    req.flush(
+      { detail: { code: 'password_change_required', message: 'Debes cambiar tu contraseña' } },
+      { status: 403, statusText: 'Forbidden' }
+    );
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/cambiar-contrasena']);
+  });
+
+  it('does not log out or redirect on a 401 from the change-own-password endpoint', () => {
+    authService.getToken.mockReturnValue('fake-token');
+
+    http.patch('/api/auth/me/password', { current_password: 'wrong', new_password: 'NewPass123!' }).subscribe({ error: () => {} });
+
+    const req = httpMock.expectOne('/api/auth/me/password');
+    req.flush({ detail: 'Contraseña actual incorrecta' }, { status: 401, statusText: 'Unauthorized' });
+
+    expect(authService.logout).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });

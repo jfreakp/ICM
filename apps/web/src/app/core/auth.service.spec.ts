@@ -72,4 +72,29 @@ describe('AuthService', () => {
     localStorage.setItem('access_token', 'fake-token');
     expect(service.isAuthenticated()).toBe(true);
   });
+
+  it('calls the change-password endpoint and updates the current user', () => {
+    let emittedUser: User | null = null;
+    service.currentUser$.subscribe((user) => {
+      emittedUser = user;
+    });
+
+    service.changeOwnPassword('Temporal123!', 'Definitiva456!').subscribe();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/auth/me/password`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({
+      current_password: 'Temporal123!',
+      new_password: 'Definitiva456!',
+    });
+    req.flush({
+      id: 1,
+      email: 'user@example.com',
+      full_name: 'Test User',
+      is_admin: false,
+      must_change_password: false,
+    });
+
+    expect((emittedUser as User | null)?.must_change_password).toBe(false);
+  });
 });

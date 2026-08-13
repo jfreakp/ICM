@@ -48,6 +48,15 @@ export class AuthService {
     );
   }
 
+  changeOwnPassword(currentPassword: string, newPassword: string): Observable<User> {
+    return this.http
+      .patch<User>(`${environment.apiUrl}/auth/me/password`, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      })
+      .pipe(tap((user) => this.currentUserSubject.next(user)));
+  }
+
   logout(): void {
     this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe({ error: () => {} });
     localStorage.removeItem(TOKEN_KEY);

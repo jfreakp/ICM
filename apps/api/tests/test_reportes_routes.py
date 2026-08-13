@@ -133,7 +133,7 @@ async def test_list_returns_items_within_range(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_list_rejects_range_crossing_month(client, db_session):
+async def test_list_allows_range_crossing_month(client, db_session):
     headers = await _auth_headers(client, db_session)
 
     response = await client.get(
@@ -142,7 +142,7 @@ async def test_list_rejects_range_crossing_month(client, db_session):
         headers=headers,
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio
@@ -324,3 +324,27 @@ async def test_export_without_token_returns_401(client, db_session):
         params={"fecha_desde": "2024-06-01", "fecha_hasta": "2024-06-30", "formato": "csv"},
     )
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_list_estados_blocked_when_must_change_password_is_true(client, db_session):
+    from app.auth import create_access_token, hash_password
+    from app.models import User
+
+    user = User(
+        email="pendiente@example.com",
+        password_hash=hash_password("Sup3rSecret!"),
+        full_name="Usuario Pendiente",
+        must_change_password=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    token = create_access_token(user_id=user.id, email=user.email)
+
+    response = await client.get(
+        "/api/reportes/impugnaciones/estados", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"]["code"] == "password_change_required"

@@ -6,7 +6,6 @@ import { AppShellComponent } from '../../../shared/app-shell/app-shell.component
 import { ImpugnacionesService } from '../../../core/impugnaciones.service';
 import { ImpugnacionFilters, ImpugnacionListResponse } from '../../../core/models/impugnacion.model';
 
-const RANGE_ERROR_MESSAGE = 'El rango de fechas debe estar dentro del mismo mes calendario.';
 const ORDER_ERROR_MESSAGE = 'La fecha desde no puede ser posterior a la fecha hasta.';
 const LOAD_ERROR_MESSAGE = 'No se pudieron cargar las impugnaciones. Intenta de nuevo.';
 
@@ -64,10 +63,6 @@ export class ImpugnacionesComponent implements OnInit {
     const hasta = new Date(fechaHasta);
     if (desde.getTime() > hasta.getTime()) {
       this.rangeErrorSubject.next(ORDER_ERROR_MESSAGE);
-      return false;
-    }
-    if (desde.getUTCFullYear() !== hasta.getUTCFullYear() || desde.getUTCMonth() !== hasta.getUTCMonth()) {
-      this.rangeErrorSubject.next(RANGE_ERROR_MESSAGE);
       return false;
     }
     this.rangeErrorSubject.next(null);

@@ -14,6 +14,11 @@ function isIpBlocked(error: HttpErrorResponse): boolean {
   return error.status === 403 && detail?.code === 'ip_not_allowed';
 }
 
+function isPasswordChangeRequired(error: HttpErrorResponse): boolean {
+  const detail = error.error?.detail as StructuredErrorDetail | undefined;
+  return error.status === 403 && detail?.code === 'password_change_required';
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
@@ -25,12 +30,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       const isLoginRequest = req.url.includes('/auth/login');
       const isLogoutRequest = req.url.includes('/auth/logout');
-      if (!isLoginRequest && !isLogoutRequest && error.status === 401) {
+      const isChangeOwnPasswordRequest = req.url.includes('/auth/me/password');
+      if (!isLoginRequest && !isLogoutRequest && !isChangeOwnPasswordRequest && error.status === 401) {
         authService.logout();
         router.navigate(['/login']);
       } else if (!isLoginRequest && !isLogoutRequest && isIpBlocked(error)) {
         authService.logout();
         router.navigate(['/login'], { queryParams: { reason: 'ip_blocked' } });
+      } else if (!isLoginRequest && !isLogoutRequest && isPasswordChangeRequired(error)) {
+        router.navigate(['/cambiar-contrasena']);
       }
       return throwError(() => error);
     })
