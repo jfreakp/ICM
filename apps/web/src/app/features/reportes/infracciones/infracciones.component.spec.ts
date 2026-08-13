@@ -101,13 +101,18 @@ describe('InfraccionesComponent', () => {
     fixture.detectChanges();
   });
 
-  it('blocks submit when the date range crosses a month boundary', () => {
+  it('allows submit and requests page 1 when the range crosses a month boundary', () => {
     fillForm('2024-03-15', '2024-04-05');
 
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('El rango de fechas debe estar dentro del mismo mes calendario.');
     const submitButton: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
-    expect(submitButton.disabled).toBe(true);
+    expect(submitButton.disabled).toBe(false);
+
+    submitForm();
+
+    expect(infraccionesService.listInfracciones).toHaveBeenCalledWith(
+      { fecha_desde: '2024-03-15', fecha_hasta: '2024-04-05', estado: null },
+      1
+    );
   });
 
   it('blocks submit when fecha desde is after fecha hasta in the same month', () => {

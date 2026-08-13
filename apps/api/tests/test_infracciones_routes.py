@@ -208,7 +208,7 @@ async def test_list_returns_items_within_range(client, db_session):
 
 
 @pytest.mark.asyncio
-async def test_list_rejects_range_crossing_month(client, db_session):
+async def test_list_allows_range_crossing_month(client, db_session):
     headers = await _auth_headers(client, db_session)
 
     response = await client.get(
@@ -217,7 +217,7 @@ async def test_list_rejects_range_crossing_month(client, db_session):
         headers=headers,
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio

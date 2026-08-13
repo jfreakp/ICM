@@ -73,11 +73,6 @@ def _validate_date_range(fecha_desde: date, fecha_hasta: date) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="fecha_desde no puede ser posterior a fecha_hasta",
         )
-    if (fecha_desde.year, fecha_desde.month) != (fecha_hasta.year, fecha_hasta.month):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El rango de fechas debe estar dentro del mismo mes calendario",
-        )
 
 
 def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | None):
