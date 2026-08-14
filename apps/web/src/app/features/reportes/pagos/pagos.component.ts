@@ -30,7 +30,6 @@ export const COLUMNAS: ColumnaPago[] = [
   { clave: 'monto_recaudado', encabezado: 'Monto Recaudado' },
   { clave: 'monto_cuenta_1', encabezado: 'Monto Cuenta 1' },
   { clave: 'monto_cuenta_2', encabezado: 'Monto Cuenta 2' },
-  { clave: 'deleted_at', encabezado: 'Fecha de Eliminación' },
   { clave: 'tipo_documento_catalogo_item_id', encabezado: 'ID de Catálogo (Tipo de Documento)' },
   { clave: 'tipo_recaudador_catalogo_item_id', encabezado: 'ID de Catálogo (Tipo de Recaudador)' },
   { clave: 'tipo_servicio_catalogo_item_id', encabezado: 'ID de Catálogo (Tipo de Servicio)' },

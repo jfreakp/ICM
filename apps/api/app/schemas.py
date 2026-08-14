@@ -66,7 +66,37 @@ class ImpugnacionItem(BaseModel):
     articulo_original: str | None
     monto_capital_original: float | None
     observacion: str | None
-    deleted_at: date | None
+    hora_generacion: time | None
+    fecha_generacion: date | None
+    numero_credito: str | None
+    numero_tramite: str | None
+    codigo_infraccion_generada_axis: str | None
+    juzgado: str | None
+    codigo_provincia: str | None
+    codigo_localidad: str | None
+    numero_proceso: str | None
+    monto_modificado_sentencia: float | None
+    puntos_original: str | None
+    puntos_modificados_sentencia: str | None
+    literal_original: str | None
+    articulo_modificado_sentencia: str | None
+    literal_modificado_sentencia: str | None
+    fecha_vencimiento_original: date | None
+    fecha_vencimiento_modificado_sentencia: date | None
+    sancion_original: str | None
+    sancion_modificada_sentencia: str | None
+    codigo_usuario: str | None
+    codigo_usuario_aprueba: str | None
+    numero_acta_juzgamiento: str | None
+    fecha_aprobacion: date | None
+    fecha_anulacion: date | None
+    codigo_usuario_anula: str | None
+    observacion_anulacion: str | None
+    articulo_original_catalogo_item_id: int | None
+    articulo_modificado_sentencia_catalogo_item_id: int | None
+    codigo_localidad_catalogo_item_id: int | None
+    codigo_provincia_catalogo_item_id: int | None
+    tipo_acta_catalogo_item_id: int | None
 
     model_config = {"from_attributes": True}
 
@@ -140,7 +170,48 @@ class InfraccionItem(BaseModel):
     valor_recargo_exonerado: float | None
     valor_intereses: float | None
     valor_total: float | None
-    deleted_at: date | None
+    hora_generacion: time | None
+    fecha_generacion: date | None
+    tipo_infraccion: str | None
+    codigo_usuario_aprueba: str | None
+    codigo_usuario_notifica: str | None
+    tipo_licencia: str | None
+    zona: str | None
+    distrito: str | None
+    circuito: str | None
+    dispositivo: str | None
+    geo_referencia_x: str | None
+    geo_referencia_y: str | None
+    tipo_identificacion_agente: str | None
+    numero_identificacion_agente: str | None
+    nombre_agente: str | None
+    codigo_agente_transito: str | None
+    tipo_infraccion_2: str | None
+    codigo_infraccion_origen: str | None
+    codigo_empresa_convenio: str | None
+    porcentaje_principal: str | None
+    porcentaje_convenio: str | None
+    cuenta_bancaria_principal: str | None
+    cuenta_bancaria_convenio: str | None
+    fecha_notificacion: date | None
+    fecha_pago: date | None
+    fecha_impugnacion: date | None
+    fecha_convenio: date | None
+    fecha_anulacion: date | None
+    fecha_coactiva: date | None
+    canal_catalogo_item_id: int | None
+    estado_catalogo_item_id: int | None
+    localidad_catalogo_item_id: int | None
+    origen_registro_catalogo_item_id: int | None
+    provincia_catalogo_item_id: int | None
+    tipo_deudor_catalogo_item_id: int | None
+    tipo_emision_catalogo_item_id: int | None
+    tipo_identificacion_agente_catalogo_item_id: int | None
+    tipo_identificacion_infractor_catalogo_item_id: int | None
+    tipo_identificacion_propietario_catalogo_item_id: int | None
+    tipo_licencia_catalogo_item_id: int | None
+    tipo_registro_infraccion_catalogo_item_id: int | None
+    zona_catalogo_item_id: int | None
 
     model_config = {"from_attributes": True}
 
@@ -180,7 +251,6 @@ class JuicioItem(BaseModel):
     valor_multas: float | None
     valor_costas: float | None
     valor_total: float | None
-    deleted_at: datetime | None
     tipo_identificacion_catalogo_item_id: int | None
 
     model_config = {"from_attributes": True}
@@ -220,7 +290,6 @@ class PagoItem(BaseModel):
     monto_recaudado: float | None
     monto_cuenta_1: float | None
     monto_cuenta_2: float | None
-    deleted_at: datetime | None
     tipo_documento_catalogo_item_id: int | None
     tipo_recaudador_catalogo_item_id: int | None
     tipo_servicio_catalogo_item_id: int | None

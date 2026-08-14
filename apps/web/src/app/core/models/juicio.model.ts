@@ -26,7 +26,6 @@ export interface JuicioItem {
   valor_multas: number | null;
   valor_costas: number | null;
   valor_total: number | null;
-  deleted_at: string | null;
   tipo_identificacion_catalogo_item_id: number | null;
 }
 

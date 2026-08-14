@@ -63,7 +63,48 @@ COLUMN_HEADERS: dict[str, str] = {
     "valor_recargo_exonerado": "Valor Recargo Exonerado",
     "valor_intereses": "Valor Intereses",
     "valor_total": "Valor Total",
-    "deleted_at": "Fecha de Eliminación",
+    "hora_generacion": "Hora de Generación del Registro",
+    "fecha_generacion": "Fecha de Generación del Registro",
+    "tipo_infraccion": "Tipo de Infracción",
+    "codigo_usuario_aprueba": "Código del Usuario que Aprueba",
+    "codigo_usuario_notifica": "Código del Usuario que Notifica",
+    "tipo_licencia": "Tipo de Licencia",
+    "zona": "Zona",
+    "distrito": "Distrito",
+    "circuito": "Circuito",
+    "dispositivo": "Dispositivo",
+    "geo_referencia_x": "Geo-referencia-X",
+    "geo_referencia_y": "Geo-referencia-Y",
+    "tipo_identificacion_agente": "Tipo de Identificación del Agente",
+    "numero_identificacion_agente": "Número de Identificación del Agente",
+    "nombre_agente": "Nombre del Agente",
+    "codigo_agente_transito": "Código del Agente de Tránsito",
+    "tipo_infraccion_2": "Tipo de Infracción (2)",
+    "codigo_infraccion_origen": "Código de la Infracción Origen",
+    "codigo_empresa_convenio": "Código de la Empresa del Convenio",
+    "porcentaje_principal": "Porcentaje Principal",
+    "porcentaje_convenio": "Porcentaje Convenio",
+    "cuenta_bancaria_principal": "Cuenta Bancaria Principal",
+    "cuenta_bancaria_convenio": "Cuenta Bancaria Convenio",
+    "fecha_notificacion": "Fecha de Notificación",
+    "fecha_pago": "Fecha de Pago",
+    "fecha_impugnacion": "Fecha de Impugnación",
+    "fecha_convenio": "Fecha de Convenio",
+    "fecha_anulacion": "Fecha de Anulación",
+    "fecha_coactiva": "Fecha de Coactiva",
+    "canal_catalogo_item_id": "ID de Catálogo (Canal)",
+    "estado_catalogo_item_id": "ID de Catálogo (Estado)",
+    "localidad_catalogo_item_id": "ID de Catálogo (Localidad)",
+    "origen_registro_catalogo_item_id": "ID de Catálogo (Origen de Registro)",
+    "provincia_catalogo_item_id": "ID de Catálogo (Provincia)",
+    "tipo_deudor_catalogo_item_id": "ID de Catálogo (Tipo de Deudor)",
+    "tipo_emision_catalogo_item_id": "ID de Catálogo (Tipo de Emisión)",
+    "tipo_identificacion_agente_catalogo_item_id": "ID de Catálogo (Tipo de Identificación del Agente)",
+    "tipo_identificacion_infractor_catalogo_item_id": "ID de Catálogo (Tipo de Identificación del Infractor)",
+    "tipo_identificacion_propietario_catalogo_item_id": "ID de Catálogo (Tipo de Identificación del Propietario)",
+    "tipo_licencia_catalogo_item_id": "ID de Catálogo (Tipo de Licencia)",
+    "tipo_registro_infraccion_catalogo_item_id": "ID de Catálogo (Tipo de Registro de Infracción)",
+    "zona_catalogo_item_id": "ID de Catálogo (Zona)",
 }
 COLUMN_NAMES = list(COLUMN_HEADERS)
 
@@ -83,7 +124,18 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | N
     return conditions
 
 
-DATE_ONLY_COLUMNS = {"fecha_registro", "fecha_emision", "fecha_aprobacion", "fecha_vencimiento", "deleted_at"}
+DATE_ONLY_COLUMNS = {
+    "fecha_registro",
+    "fecha_emision",
+    "fecha_aprobacion",
+    "fecha_vencimiento",
+    "fecha_notificacion",
+    "fecha_pago",
+    "fecha_impugnacion",
+    "fecha_convenio",
+    "fecha_anulacion",
+    "fecha_coactiva",
+}
 
 
 def _select_column(name: str):

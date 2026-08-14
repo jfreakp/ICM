@@ -31,7 +31,37 @@ COLUMN_HEADERS: dict[str, str] = {
     "articulo_original": "Artículo Original",
     "monto_capital_original": "Monto Capital Original",
     "observacion": "Observación",
-    "deleted_at": "Fecha de Eliminación",
+    "hora_generacion": "Hora de Generación del Registro",
+    "fecha_generacion": "Fecha de Generación del Registro",
+    "numero_credito": "Número de Crédito",
+    "numero_tramite": "Número de Trámite",
+    "codigo_infraccion_generada_axis": "Código de la Infracción Generada en AXIS Cloud",
+    "juzgado": "Juzgado",
+    "codigo_provincia": "Código de la Provincia",
+    "codigo_localidad": "Código de la Localidad",
+    "numero_proceso": "Número del Proceso",
+    "monto_modificado_sentencia": "Monto Modificado por la Sentencia",
+    "puntos_original": "Puntos Original",
+    "puntos_modificados_sentencia": "Puntos Modificados por la Sentencia",
+    "literal_original": "Literal Original",
+    "articulo_modificado_sentencia": "Artículo Modificado por la Sentencia",
+    "literal_modificado_sentencia": "Literal Modificado por la Sentencia",
+    "fecha_vencimiento_original": "Fecha de Vencimiento Original",
+    "fecha_vencimiento_modificado_sentencia": "Fecha de Vencimiento Modificado por la Sentencia",
+    "sancion_original": "Sanción Original",
+    "sancion_modificada_sentencia": "Sanción Modificada por la Sentencia",
+    "codigo_usuario": "Código del Usuario",
+    "codigo_usuario_aprueba": "Código del Usuario que Aprueba",
+    "numero_acta_juzgamiento": "Número de Acta de Juzgamiento",
+    "fecha_aprobacion": "Fecha de Aprobación",
+    "fecha_anulacion": "Fecha de Anulación",
+    "codigo_usuario_anula": "Código de Usuario que Anula",
+    "observacion_anulacion": "Observación de Anulación",
+    "articulo_original_catalogo_item_id": "ID de Catálogo (Artículo Original)",
+    "articulo_modificado_sentencia_catalogo_item_id": "ID de Catálogo (Artículo Modificado por la Sentencia)",
+    "codigo_localidad_catalogo_item_id": "ID de Catálogo (Localidad)",
+    "codigo_provincia_catalogo_item_id": "ID de Catálogo (Provincia)",
+    "tipo_acta_catalogo_item_id": "ID de Catálogo (Tipo de Acta)",
 }
 COLUMN_NAMES = list(COLUMN_HEADERS)
 
@@ -51,7 +81,14 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | N
     return conditions
 
 
-DATE_ONLY_COLUMNS = {"fecha_registro", "fecha_acta", "deleted_at"}
+DATE_ONLY_COLUMNS = {
+    "fecha_registro",
+    "fecha_acta",
+    "fecha_vencimiento_original",
+    "fecha_vencimiento_modificado_sentencia",
+    "fecha_aprobacion",
+    "fecha_anulacion",
+}
 
 
 def _select_column(name: str):

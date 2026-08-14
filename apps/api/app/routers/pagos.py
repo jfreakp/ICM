@@ -37,7 +37,6 @@ COLUMN_HEADERS: dict[str, str] = {
     "monto_recaudado": "Monto Recaudado",
     "monto_cuenta_1": "Monto Cuenta 1",
     "monto_cuenta_2": "Monto Cuenta 2",
-    "deleted_at": "Fecha de Eliminación",
     "tipo_documento_catalogo_item_id": "ID de Catálogo (Tipo de Documento)",
     "tipo_recaudador_catalogo_item_id": "ID de Catálogo (Tipo de Recaudador)",
     "tipo_servicio_catalogo_item_id": "ID de Catálogo (Tipo de Servicio)",

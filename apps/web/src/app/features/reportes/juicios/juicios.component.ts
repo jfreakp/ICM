@@ -41,7 +41,6 @@ export const COLUMNAS: ColumnaJuicio[] = [
   { clave: 'valor_multas', encabezado: 'Valor Multas' },
   { clave: 'valor_costas', encabezado: 'Valor Costas' },
   { clave: 'valor_total', encabezado: 'Valor Total' },
-  { clave: 'deleted_at', encabezado: 'Fecha de Eliminación' },
   { clave: 'tipo_identificacion_catalogo_item_id', encabezado: 'ID de Catálogo (Tipo de Identificación)' },
 ];
 

@@ -112,7 +112,6 @@ async def test_list_returns_items_within_range(client, db_session):
     first = body["items"][0]
     assert first["recaudador"] == "BANCO DEL PACIFICO"
     assert first["monto_recaudado"] == 119.0
-    assert first["deleted_at"] is None
     assert first["tipo_documento_catalogo_item_id"] is None
     assert first["tipo_recaudador_catalogo_item_id"] is None
     assert first["tipo_servicio_catalogo_item_id"] is None
@@ -280,7 +279,6 @@ EXPECTED_HEADERS = [
     "Monto Recaudado",
     "Monto Cuenta 1",
     "Monto Cuenta 2",
-    "Fecha de Eliminación",
     "ID de Catálogo (Tipo de Documento)",
     "ID de Catálogo (Tipo de Recaudador)",
     "ID de Catálogo (Tipo de Servicio)",
@@ -311,11 +309,11 @@ async def test_export_csv_returns_all_matching_rows(client, db_session):
     reader = csv.reader(lines)
     parsed_rows = list(reader)
     assert parsed_rows[0] == EXPECTED_HEADERS
-    assert len(parsed_rows[0]) == 19
+    assert len(parsed_rows[0]) == 18
     assert len(lines) - 1 == 28
 
     data_row = parsed_rows[1]
-    assert len(data_row) == 19
+    assert len(data_row) == 18
     assert data_row[0].startswith("TEST-PAG-e-")
 
 
@@ -342,11 +340,11 @@ async def test_export_xlsx_returns_all_matching_rows(client, db_session):
 
     workbook = load_workbook(io.BytesIO(response.content))
     sheet = workbook.active
-    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 20)]
+    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 19)]
     assert header_row == EXPECTED_HEADERS
     assert sheet.max_row - 1 == 29
 
-    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 20)]
+    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 19)]
     assert data_row[0].startswith("TEST-PAG-x-")
 
 
