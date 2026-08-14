@@ -59,7 +59,48 @@ describe('InfraccionesComponent', () => {
     valor_recargo_exonerado: 0,
     valor_intereses: 1,
     valor_total: 56,
-    deleted_at: null,
+    hora_generacion: '14:35:00',
+    fecha_generacion: '2024-06-01',
+    tipo_infraccion: null,
+    codigo_usuario_aprueba: null,
+    codigo_usuario_notifica: null,
+    tipo_licencia: null,
+    zona: null,
+    distrito: null,
+    circuito: null,
+    dispositivo: null,
+    geo_referencia_x: null,
+    geo_referencia_y: null,
+    tipo_identificacion_agente: null,
+    numero_identificacion_agente: null,
+    nombre_agente: null,
+    codigo_agente_transito: null,
+    tipo_infraccion_2: null,
+    codigo_infraccion_origen: null,
+    codigo_empresa_convenio: null,
+    porcentaje_principal: null,
+    porcentaje_convenio: null,
+    cuenta_bancaria_principal: null,
+    cuenta_bancaria_convenio: null,
+    fecha_notificacion: null,
+    fecha_pago: null,
+    fecha_impugnacion: null,
+    fecha_convenio: null,
+    fecha_anulacion: null,
+    fecha_coactiva: null,
+    canal_catalogo_item_id: null,
+    estado_catalogo_item_id: null,
+    localidad_catalogo_item_id: null,
+    origen_registro_catalogo_item_id: null,
+    provincia_catalogo_item_id: null,
+    tipo_deudor_catalogo_item_id: null,
+    tipo_emision_catalogo_item_id: null,
+    tipo_identificacion_agente_catalogo_item_id: null,
+    tipo_identificacion_infractor_catalogo_item_id: null,
+    tipo_identificacion_propietario_catalogo_item_id: null,
+    tipo_licencia_catalogo_item_id: null,
+    tipo_registro_infraccion_catalogo_item_id: null,
+    zona_catalogo_item_id: null,
   };
 
   const resultado: InfraccionListResponse = { items: [item], total: 1, page: 1, page_size: 50 };
@@ -138,7 +179,7 @@ describe('InfraccionesComponent', () => {
   });
 
   describe('async rendering under zoneless change detection', () => {
-    it('renders results once the deferred response arrives, with all 42 columns in the defined order', async () => {
+    it('renders results once the deferred response arrives, with all 83 columns in the defined order', async () => {
       const resultado$ = new Subject<InfraccionListResponse>();
       infraccionesService.listInfracciones.mockReturnValue(resultado$);
 
@@ -159,13 +200,13 @@ describe('InfraccionesComponent', () => {
       const headerCells: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('thead th');
       const headerTexts = Array.from(headerCells).map((th) => th.textContent?.trim());
       expect(headerTexts).toEqual(COLUMNAS.map((c) => c.encabezado));
-      expect(headerTexts.length).toBe(42);
+      expect(headerTexts.length).toBe(83);
 
       const cells: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll(
         'tbody tr:first-child td'
       );
       const cellTexts = Array.from(cells).map((td) => td.textContent?.trim());
-      expect(cellTexts.length).toBe(42);
+      expect(cellTexts.length).toBe(83);
       expect(cellTexts[0]).toBe('REG-001');
       expect(cellTexts[6]).toBe('COD-001');
       expect(cellTexts[40]).toBe('56');

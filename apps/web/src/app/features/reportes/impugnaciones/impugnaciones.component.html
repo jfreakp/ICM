@@ -58,7 +58,37 @@
                 <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Artículo Original</th>
                 <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Monto Capital Original</th>
                 <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Observación</th>
-                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha de Eliminación</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Hora de Generación del Registro</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha de Generación del Registro</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Número de Crédito</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Número de Trámite</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Código de la Infracción Generada en AXIS Cloud</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Juzgado</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Código de la Provincia</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Código de la Localidad</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Número del Proceso</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Monto Modificado por la Sentencia</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Puntos Original</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Puntos Modificados por la Sentencia</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Literal Original</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Artículo Modificado por la Sentencia</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Literal Modificado por la Sentencia</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha de Vencimiento Original</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha de Vencimiento Modificado por la Sentencia</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Sanción Original</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Sanción Modificada por la Sentencia</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Código del Usuario</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Código del Usuario que Aprueba</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Número de Acta de Juzgamiento</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha de Aprobación</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha de Anulación</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Código de Usuario que Anula</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Observación de Anulación</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">ID de Catálogo (Artículo Original)</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">ID de Catálogo (Artículo Modificado por la Sentencia)</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">ID de Catálogo (Localidad)</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">ID de Catálogo (Provincia)</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">ID de Catálogo (Tipo de Acta)</th>
               </tr>
             </thead>
             <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
@@ -74,7 +104,37 @@
                   <td class="py-3 px-md text-on-surface-variant">{{ item.articulo_original }}</td>
                   <td class="py-3 px-md text-on-surface-variant">{{ item.monto_capital_original }}</td>
                   <td class="py-3 px-md text-on-surface-variant">{{ item.observacion }}</td>
-                  <td class="py-3 px-md text-on-surface-variant">{{ item.deleted_at }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.hora_generacion }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.fecha_generacion }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.numero_credito }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.numero_tramite }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_infraccion_generada_axis }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.juzgado }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_provincia }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_localidad }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.numero_proceso }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.monto_modificado_sentencia }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.puntos_original }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.puntos_modificados_sentencia }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.literal_original }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.articulo_modificado_sentencia }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.literal_modificado_sentencia }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.fecha_vencimiento_original }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.fecha_vencimiento_modificado_sentencia }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.sancion_original }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.sancion_modificada_sentencia }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_usuario }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_usuario_aprueba }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.numero_acta_juzgamiento }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.fecha_aprobacion }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.fecha_anulacion }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_usuario_anula }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.observacion_anulacion }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.articulo_original_catalogo_item_id }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.articulo_modificado_sentencia_catalogo_item_id }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_localidad_catalogo_item_id }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.codigo_provincia_catalogo_item_id }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.tipo_acta_catalogo_item_id }}</td>
                 </tr>
               }
             </tbody>

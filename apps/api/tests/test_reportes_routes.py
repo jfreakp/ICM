@@ -248,7 +248,37 @@ EXPECTED_HEADERS = [
     "Artículo Original",
     "Monto Capital Original",
     "Observación",
-    "Fecha de Eliminación",
+    "Hora de Generación del Registro",
+    "Fecha de Generación del Registro",
+    "Número de Crédito",
+    "Número de Trámite",
+    "Código de la Infracción Generada en AXIS Cloud",
+    "Juzgado",
+    "Código de la Provincia",
+    "Código de la Localidad",
+    "Número del Proceso",
+    "Monto Modificado por la Sentencia",
+    "Puntos Original",
+    "Puntos Modificados por la Sentencia",
+    "Literal Original",
+    "Artículo Modificado por la Sentencia",
+    "Literal Modificado por la Sentencia",
+    "Fecha de Vencimiento Original",
+    "Fecha de Vencimiento Modificado por la Sentencia",
+    "Sanción Original",
+    "Sanción Modificada por la Sentencia",
+    "Código del Usuario",
+    "Código del Usuario que Aprueba",
+    "Número de Acta de Juzgamiento",
+    "Fecha de Aprobación",
+    "Fecha de Anulación",
+    "Código de Usuario que Anula",
+    "Observación de Anulación",
+    "ID de Catálogo (Artículo Original)",
+    "ID de Catálogo (Artículo Modificado por la Sentencia)",
+    "ID de Catálogo (Localidad)",
+    "ID de Catálogo (Provincia)",
+    "ID de Catálogo (Tipo de Acta)",
 ]
 
 
@@ -280,7 +310,7 @@ async def test_export_csv_returns_all_matching_rows(client, db_session):
     assert len(lines) - 1 == 55
 
     data_row = parsed_rows[1]
-    assert len(data_row) == 11
+    assert len(data_row) == 41
     assert data_row[3] == "A"
     assert data_row[0].startswith("TEST-e-")
 
@@ -309,11 +339,11 @@ async def test_export_xlsx_returns_all_matching_rows(client, db_session):
 
     workbook = load_workbook(io.BytesIO(response.content))
     sheet = workbook.active
-    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 12)]
+    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 42)]
     assert header_row == EXPECTED_HEADERS
     assert sheet.max_row - 1 == 55
 
-    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 12)]
+    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 42)]
     assert data_row[3] == "A"
     assert data_row[0].startswith("TEST-x-")
 
@@ -333,11 +363,6 @@ async def test_list_truncates_datetime_columns_to_date_only(client, db_session):
     await _seed_impugnaciones(
         db_session, [_row("TEST-TRUNC-001", datetime(2031, 6, 5, 14, 35, 0), estado="A")]
     )
-    await db_session.execute(
-        text("UPDATE axis.axis_impugnaciones SET deleted_at = :ts WHERE registro = 'TEST-TRUNC-001'"),
-        {"ts": datetime(2031, 6, 5, 14, 35, 0)},
-    )
-    await db_session.commit()
 
     response = await client.get(
         "/api/reportes/impugnaciones",
@@ -349,7 +374,6 @@ async def test_list_truncates_datetime_columns_to_date_only(client, db_session):
     first = response.json()["items"][0]
     assert first["fecha_registro"] == "2031-06-05"
     assert first["fecha_acta"] == "2031-06-05"
-    assert first["deleted_at"] == "2031-06-05"
 
 
 @pytest.mark.asyncio
@@ -373,6 +397,45 @@ async def test_export_truncates_datetime_columns_to_date_only(client, db_session
     data_row = parsed_rows[-1]
     assert data_row[1] == "2031-06-06"
     assert data_row[2] == "2031-06-06"
+
+
+@pytest.mark.asyncio
+async def test_list_shows_newly_added_columns(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_impugnaciones(
+        db_session, [_row("TEST-NEWCOL-001", datetime(2031, 6, 5, 14, 35, 0), estado="A")]
+    )
+    await db_session.execute(
+        text(
+            """
+            UPDATE axis.axis_impugnaciones
+            SET hora_generacion = '14:35:00',
+                fecha_generacion = '2031-06-01',
+                numero_credito = 'CRED-001',
+                juzgado = 'Juzgado de Prueba',
+                fecha_anulacion = :fecha_anulacion,
+                tipo_acta_catalogo_item_id = 42
+            WHERE registro = 'TEST-NEWCOL-001'
+            """
+        ),
+        {"fecha_anulacion": datetime(2031, 6, 10, 9, 0, 0)},
+    )
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/reportes/impugnaciones",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    first = response.json()["items"][0]
+    assert first["hora_generacion"] == "14:35:00"
+    assert first["fecha_generacion"] == "2031-06-01"
+    assert first["numero_credito"] == "CRED-001"
+    assert first["juzgado"] == "Juzgado de Prueba"
+    assert first["fecha_anulacion"] == "2031-06-10"
+    assert first["tipo_acta_catalogo_item_id"] == 42
 
 
 @pytest.mark.asyncio

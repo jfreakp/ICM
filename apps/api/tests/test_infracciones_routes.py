@@ -349,7 +349,48 @@ EXPECTED_HEADERS = [
     "Valor Recargo Exonerado",
     "Valor Intereses",
     "Valor Total",
-    "Fecha de Eliminación",
+    "Hora de Generación del Registro",
+    "Fecha de Generación del Registro",
+    "Tipo de Infracción",
+    "Código del Usuario que Aprueba",
+    "Código del Usuario que Notifica",
+    "Tipo de Licencia",
+    "Zona",
+    "Distrito",
+    "Circuito",
+    "Dispositivo",
+    "Geo-referencia-X",
+    "Geo-referencia-Y",
+    "Tipo de Identificación del Agente",
+    "Número de Identificación del Agente",
+    "Nombre del Agente",
+    "Código del Agente de Tránsito",
+    "Tipo de Infracción (2)",
+    "Código de la Infracción Origen",
+    "Código de la Empresa del Convenio",
+    "Porcentaje Principal",
+    "Porcentaje Convenio",
+    "Cuenta Bancaria Principal",
+    "Cuenta Bancaria Convenio",
+    "Fecha de Notificación",
+    "Fecha de Pago",
+    "Fecha de Impugnación",
+    "Fecha de Convenio",
+    "Fecha de Anulación",
+    "Fecha de Coactiva",
+    "ID de Catálogo (Canal)",
+    "ID de Catálogo (Estado)",
+    "ID de Catálogo (Localidad)",
+    "ID de Catálogo (Origen de Registro)",
+    "ID de Catálogo (Provincia)",
+    "ID de Catálogo (Tipo de Deudor)",
+    "ID de Catálogo (Tipo de Emisión)",
+    "ID de Catálogo (Tipo de Identificación del Agente)",
+    "ID de Catálogo (Tipo de Identificación del Infractor)",
+    "ID de Catálogo (Tipo de Identificación del Propietario)",
+    "ID de Catálogo (Tipo de Licencia)",
+    "ID de Catálogo (Tipo de Registro de Infracción)",
+    "ID de Catálogo (Zona)",
 ]
 
 
@@ -378,11 +419,11 @@ async def test_export_csv_returns_all_matching_rows(client, db_session):
     reader = csv.reader(lines)
     parsed_rows = list(reader)
     assert parsed_rows[0] == EXPECTED_HEADERS
-    assert len(parsed_rows[0]) == 42
+    assert len(parsed_rows[0]) == 83
     assert len(lines) - 1 == 55
 
     data_row = parsed_rows[1]
-    assert len(data_row) == 42
+    assert len(data_row) == 83
     assert data_row[5] == "EMITIDA"
     assert data_row[0].startswith("TEST-INF-e-")
 
@@ -411,11 +452,11 @@ async def test_export_xlsx_returns_all_matching_rows(client, db_session):
 
     workbook = load_workbook(io.BytesIO(response.content))
     sheet = workbook.active
-    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 43)]
+    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 84)]
     assert header_row == EXPECTED_HEADERS
     assert sheet.max_row - 1 == 55
 
-    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 43)]
+    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 84)]
     assert data_row[5] == "EMITIDA"
     assert data_row[0].startswith("TEST-INF-x-")
 
@@ -459,11 +500,6 @@ async def test_list_truncates_datetime_columns_to_date_only(client, db_session):
     await _seed_infracciones(
         db_session, [_row("TEST-INF-TRUNC-001", datetime(2031, 6, 5, 14, 35, 0), estado="EMITIDA")]
     )
-    await db_session.execute(
-        text("UPDATE axis.axis_infracciones SET deleted_at = :ts WHERE registro = 'TEST-INF-TRUNC-001'"),
-        {"ts": datetime(2031, 6, 5, 14, 35, 0)},
-    )
-    await db_session.commit()
 
     response = await client.get(
         "/api/reportes/infracciones",
@@ -477,7 +513,6 @@ async def test_list_truncates_datetime_columns_to_date_only(client, db_session):
     assert first["fecha_emision"] == "2031-06-05"
     assert first["fecha_aprobacion"] == "2031-06-05"
     assert first["fecha_vencimiento"] == "2031-06-05"
-    assert first["deleted_at"] == "2031-06-05"
 
 
 @pytest.mark.asyncio
@@ -503,3 +538,48 @@ async def test_export_truncates_datetime_columns_to_date_only(client, db_session
     assert data_row[2] == "2031-06-06"
     assert data_row[3] == "2031-06-06"
     assert data_row[4] == "2031-06-06"
+
+
+@pytest.mark.asyncio
+async def test_list_shows_newly_added_columns(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_infracciones(
+        db_session, [_row("TEST-INF-NEWCOL-001", datetime(2031, 6, 5, 14, 35, 0), estado="EMITIDA")]
+    )
+    await _seed_personas(db_session, ["TEST-INF-AGT-0001"])
+    await db_session.execute(
+        text(
+            """
+            UPDATE axis.axis_infracciones
+            SET hora_generacion = '14:35:00',
+                fecha_generacion = '2031-06-01',
+                tipo_infraccion = 'DE TRANSITO',
+                zona = 'ZONA 1',
+                tipo_identificacion_agente = 'CED',
+                numero_identificacion_agente = 'TEST-INF-AGT-0001',
+                nombre_agente = 'Agente de Prueba',
+                fecha_coactiva = :fecha_coactiva,
+                estado_catalogo_item_id = 77
+            WHERE registro = 'TEST-INF-NEWCOL-001'
+            """
+        ),
+        {"fecha_coactiva": datetime(2031, 6, 12, 8, 0, 0)},
+    )
+    await db_session.commit()
+
+    response = await client.get(
+        "/api/reportes/infracciones",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    first = response.json()["items"][0]
+    assert first["hora_generacion"] == "14:35:00"
+    assert first["fecha_generacion"] == "2031-06-01"
+    assert first["tipo_infraccion"] == "DE TRANSITO"
+    assert first["zona"] == "ZONA 1"
+    assert first["numero_identificacion_agente"] == "TEST-INF-AGT-0001"
+    assert first["nombre_agente"] == "Agente de Prueba"
+    assert first["fecha_coactiva"] == "2031-06-12"
+    assert first["estado_catalogo_item_id"] == 77
