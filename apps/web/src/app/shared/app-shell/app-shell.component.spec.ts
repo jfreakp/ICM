@@ -167,5 +167,26 @@ describe('AppShellComponent', () => {
       expect(juiciosLink).not.toBeNull();
       expect(juiciosLink!.classList.contains('text-secondary-fixed-dim')).toBe(true);
     });
+
+    it('shows the Pagos link once the Reportes submenu is expanded', () => {
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="reportes-toggle"]');
+      toggle.click();
+      fixture.detectChanges();
+
+      const pagosLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/pagos"]'
+      );
+      expect(pagosLink).not.toBeNull();
+    });
+
+    it('auto-expands and highlights Pagos when activeRoute is pagos', () => {
+      createComponent('pagos');
+
+      const pagosLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/pagos"]'
+      );
+      expect(pagosLink).not.toBeNull();
+      expect(pagosLink!.classList.contains('text-secondary-fixed-dim')).toBe(true);
+    });
   });
 });

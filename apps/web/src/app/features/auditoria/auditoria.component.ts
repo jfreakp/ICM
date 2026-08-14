@@ -20,6 +20,8 @@ export const ACCIONES: { value: string; label: string }[] = [
   { value: 'reportes.infracciones.export', label: 'Descarga de infracciones' },
   { value: 'reportes.juicios.search', label: 'Búsqueda de juicios' },
   { value: 'reportes.juicios.export', label: 'Descarga de juicios' },
+  { value: 'reportes.pagos.search', label: 'Búsqueda de pagos' },
+  { value: 'reportes.pagos.export', label: 'Descarga de pagos' },
   { value: 'usuarios.update_allowed_ip', label: 'Cambio de IP permitida' },
 ];
 

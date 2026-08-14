@@ -197,3 +197,31 @@ class ResumenTablaItem(BaseModel):
 
 class DashboardResumenResponse(BaseModel):
     tablas: list[ResumenTablaItem]
+
+
+class PagoItem(BaseModel):
+    id: int
+    registro: str | None
+    hora_generacion: time | None
+    tipo_recaudador: str | None
+    recaudador: str | None
+    comprobante_pago_interno: str | None
+    comprobante_pago_recaudador: str | None
+    tipo_servicio: str | None
+    tipo_documento: str | None
+    numero_documento: str | None
+    fecha_generacion: date | None
+    fecha_operacion: datetime | None
+    fecha_transaccion: datetime | None
+    monto_recaudado: float | None
+    monto_cuenta_1: float | None
+    monto_cuenta_2: float | None
+
+    model_config = {"from_attributes": True}
+
+
+class PagoListResponse(BaseModel):
+    items: list[PagoItem]
+    total: int
+    page: int
+    page_size: int
