@@ -146,5 +146,26 @@ describe('AppShellComponent', () => {
       expect(impugnacionesLink).not.toBeNull();
       expect(impugnacionesLink!.classList.contains('text-secondary-fixed-dim')).toBe(false);
     });
+
+    it('shows the Juicios link once the Reportes submenu is expanded', () => {
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[data-testid="reportes-toggle"]');
+      toggle.click();
+      fixture.detectChanges();
+
+      const juiciosLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/juicios"]'
+      );
+      expect(juiciosLink).not.toBeNull();
+    });
+
+    it('auto-expands and highlights Juicios when activeRoute is juicios', () => {
+      createComponent('juicios');
+
+      const juiciosLink: HTMLAnchorElement | null = fixture.nativeElement.querySelector(
+        'a[href="/reportes/juicios"]'
+      );
+      expect(juiciosLink).not.toBeNull();
+      expect(juiciosLink!.classList.contains('text-secondary-fixed-dim')).toBe(true);
+    });
   });
 });
