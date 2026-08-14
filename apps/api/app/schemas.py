@@ -57,8 +57,8 @@ class ChangeOwnPasswordRequest(BaseModel):
 class ImpugnacionItem(BaseModel):
     id: int
     registro: str | None
-    fecha_registro: datetime | None
-    fecha_acta: datetime | None
+    fecha_registro: date | None
+    fecha_acta: date | None
     estado: str | None
     codigo_infraccion_axis: str | None
     contravencion: str | None
@@ -66,6 +66,7 @@ class ImpugnacionItem(BaseModel):
     articulo_original: str | None
     monto_capital_original: float | None
     observacion: str | None
+    deleted_at: date | None
 
     model_config = {"from_attributes": True}
 
@@ -99,10 +100,10 @@ class AuditLogListResponse(BaseModel):
 class InfraccionItem(BaseModel):
     id: int
     registro: str | None
-    fecha_registro: datetime | None
-    fecha_emision: datetime | None
-    fecha_aprobacion: datetime | None
-    fecha_vencimiento: datetime | None
+    fecha_registro: date | None
+    fecha_emision: date | None
+    fecha_aprobacion: date | None
+    fecha_vencimiento: date | None
     estado: str | None
     codigo_infraccion: str | None
     codigo_infraccion_ant: str | None
@@ -139,6 +140,7 @@ class InfraccionItem(BaseModel):
     valor_recargo_exonerado: float | None
     valor_intereses: float | None
     valor_total: float | None
+    deleted_at: date | None
 
     model_config = {"from_attributes": True}
 
@@ -178,6 +180,8 @@ class JuicioItem(BaseModel):
     valor_multas: float | None
     valor_costas: float | None
     valor_total: float | None
+    deleted_at: datetime | None
+    tipo_identificacion_catalogo_item_id: int | None
 
     model_config = {"from_attributes": True}
 
@@ -211,11 +215,15 @@ class PagoItem(BaseModel):
     tipo_documento: str | None
     numero_documento: str | None
     fecha_generacion: date | None
-    fecha_operacion: datetime | None
-    fecha_transaccion: datetime | None
+    fecha_operacion: date | None
+    fecha_transaccion: date | None
     monto_recaudado: float | None
     monto_cuenta_1: float | None
     monto_cuenta_2: float | None
+    deleted_at: datetime | None
+    tipo_documento_catalogo_item_id: int | None
+    tipo_recaudador_catalogo_item_id: int | None
+    tipo_servicio_catalogo_item_id: int | None
 
     model_config = {"from_attributes": True}
 

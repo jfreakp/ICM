@@ -15,6 +15,10 @@ export interface PagoItem {
   monto_recaudado: number | null;
   monto_cuenta_1: number | null;
   monto_cuenta_2: number | null;
+  deleted_at: string | null;
+  tipo_documento_catalogo_item_id: number | null;
+  tipo_recaudador_catalogo_item_id: number | null;
+  tipo_servicio_catalogo_item_id: number | null;
 }
 
 export interface PagoListResponse {

@@ -63,6 +63,7 @@ COLUMN_HEADERS: dict[str, str] = {
     "valor_recargo_exonerado": "Valor Recargo Exonerado",
     "valor_intereses": "Valor Intereses",
     "valor_total": "Valor Total",
+    "deleted_at": "Fecha de Eliminación",
 }
 COLUMN_NAMES = list(COLUMN_HEADERS)
 
@@ -80,6 +81,16 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | N
     if estado is not None:
         conditions.append(axis_infracciones.c.estado == estado)
     return conditions
+
+
+DATE_ONLY_COLUMNS = {"fecha_registro", "fecha_emision", "fecha_aprobacion", "fecha_vencimiento", "deleted_at"}
+
+
+def _select_column(name: str):
+    column = axis_infracciones.c[name]
+    if name in DATE_ONLY_COLUMNS:
+        return cast(column, Date).label(name)
+    return column
 
 
 @router.get("/infracciones/estados", response_model=list[str])
@@ -113,7 +124,7 @@ async def list_infracciones(
         select(func.count()).select_from(axis_infracciones).where(and_(*conditions))
     )
 
-    columns = [axis_infracciones.c.id] + [axis_infracciones.c[name] for name in COLUMN_NAMES]
+    columns = [axis_infracciones.c.id] + [_select_column(name) for name in COLUMN_NAMES]
     stmt = (
         select(*columns)
         .where(and_(*conditions))
@@ -164,7 +175,7 @@ async def export_infracciones(
     _validate_date_range(fecha_desde, fecha_hasta)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
 
-    columns = [axis_infracciones.c[name] for name in COLUMN_NAMES]
+    columns = [_select_column(name) for name in COLUMN_NAMES]
     stmt = (
         select(*columns)
         .where(and_(*conditions))

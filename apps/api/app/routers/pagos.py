@@ -37,6 +37,10 @@ COLUMN_HEADERS: dict[str, str] = {
     "monto_recaudado": "Monto Recaudado",
     "monto_cuenta_1": "Monto Cuenta 1",
     "monto_cuenta_2": "Monto Cuenta 2",
+    "deleted_at": "Fecha de Eliminación",
+    "tipo_documento_catalogo_item_id": "ID de Catálogo (Tipo de Documento)",
+    "tipo_recaudador_catalogo_item_id": "ID de Catálogo (Tipo de Recaudador)",
+    "tipo_servicio_catalogo_item_id": "ID de Catálogo (Tipo de Servicio)",
 }
 COLUMN_NAMES = list(COLUMN_HEADERS)
 
@@ -56,6 +60,16 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date):
     ]
 
 
+DATE_ONLY_COLUMNS = {"fecha_operacion", "fecha_transaccion"}
+
+
+def _select_column(name: str):
+    column = axis_pagos.c[name]
+    if name in DATE_ONLY_COLUMNS:
+        return cast(column, Date).label(name)
+    return column
+
+
 @router.get("/pagos", response_model=PagoListResponse)
 async def list_pagos(
     request: Request,
@@ -70,7 +84,7 @@ async def list_pagos(
 
     total = await db.scalar(select(func.count()).select_from(axis_pagos).where(and_(*conditions)))
 
-    columns = [axis_pagos.c.id] + [axis_pagos.c[name] for name in COLUMN_NAMES]
+    columns = [axis_pagos.c.id] + [_select_column(name) for name in COLUMN_NAMES]
     stmt = (
         select(*columns)
         .where(and_(*conditions))
@@ -119,7 +133,7 @@ async def export_pagos(
     _validate_date_range(fecha_desde, fecha_hasta)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta)
 
-    columns = [axis_pagos.c[name] for name in COLUMN_NAMES]
+    columns = [_select_column(name) for name in COLUMN_NAMES]
     stmt = (
         select(*columns)
         .where(and_(*conditions))

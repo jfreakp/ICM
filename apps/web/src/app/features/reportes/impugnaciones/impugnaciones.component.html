@@ -58,6 +58,7 @@
                 <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Artículo Original</th>
                 <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Monto Capital Original</th>
                 <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Observación</th>
+                <th class="py-3 px-md font-label-caps text-label-caps text-on-surface-variant">Fecha de Eliminación</th>
               </tr>
             </thead>
             <tbody class="font-body-sm text-body-sm divide-y divide-outline-variant/50">
@@ -73,6 +74,7 @@
                   <td class="py-3 px-md text-on-surface-variant">{{ item.articulo_original }}</td>
                   <td class="py-3 px-md text-on-surface-variant">{{ item.monto_capital_original }}</td>
                   <td class="py-3 px-md text-on-surface-variant">{{ item.observacion }}</td>
+                  <td class="py-3 px-md text-on-surface-variant">{{ item.deleted_at }}</td>
                 </tr>
               }
             </tbody>

@@ -43,6 +43,8 @@ describe('JuiciosComponent', () => {
     valor_multas: 40,
     valor_costas: 30.63,
     valor_total: 80.48,
+    deleted_at: null,
+    tipo_identificacion_catalogo_item_id: 67,
   };
 
   const resultado: JuicioListResponse = { items: [item], total: 1, page: 1, page_size: 50 };
@@ -106,7 +108,7 @@ describe('JuiciosComponent', () => {
   });
 
   describe('async rendering under zoneless change detection', () => {
-    it('renders results once the deferred response arrives, with all 26 columns in the defined order', async () => {
+    it('renders results once the deferred response arrives, with all 28 columns in the defined order', async () => {
       const resultado$ = new Subject<JuicioListResponse>();
       juiciosService.listJuicios.mockReturnValue(resultado$);
 
@@ -127,15 +129,16 @@ describe('JuiciosComponent', () => {
       const headerCells: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('thead th');
       const headerTexts = Array.from(headerCells).map((th) => th.textContent?.trim());
       expect(headerTexts).toEqual(COLUMNAS.map((c) => c.encabezado));
-      expect(headerTexts.length).toBe(26);
+      expect(headerTexts.length).toBe(28);
 
       const cells: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll(
         'tbody tr:first-child td'
       );
       const cellTexts = Array.from(cells).map((td) => td.textContent?.trim());
-      expect(cellTexts.length).toBe(26);
+      expect(cellTexts.length).toBe(28);
       expect(cellTexts[0]).toBe('REG-001');
       expect(cellTexts[25]).toBe('80.48');
+      expect(cellTexts[27]).toBe('67');
     });
 
     it('shows the empty state message when there are no results', async () => {

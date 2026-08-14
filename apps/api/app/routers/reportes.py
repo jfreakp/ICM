@@ -31,6 +31,7 @@ COLUMN_HEADERS: dict[str, str] = {
     "articulo_original": "Artículo Original",
     "monto_capital_original": "Monto Capital Original",
     "observacion": "Observación",
+    "deleted_at": "Fecha de Eliminación",
 }
 COLUMN_NAMES = list(COLUMN_HEADERS)
 
@@ -48,6 +49,16 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | N
     if estado is not None:
         conditions.append(axis_impugnaciones.c.estado == estado)
     return conditions
+
+
+DATE_ONLY_COLUMNS = {"fecha_registro", "fecha_acta", "deleted_at"}
+
+
+def _select_column(name: str):
+    column = axis_impugnaciones.c[name]
+    if name in DATE_ONLY_COLUMNS:
+        return cast(column, Date).label(name)
+    return column
 
 
 @router.get("/impugnaciones/estados", response_model=list[str])
@@ -81,7 +92,7 @@ async def list_impugnaciones(
         select(func.count()).select_from(axis_impugnaciones).where(and_(*conditions))
     )
 
-    columns = [axis_impugnaciones.c.id] + [axis_impugnaciones.c[name] for name in COLUMN_NAMES]
+    columns = [axis_impugnaciones.c.id] + [_select_column(name) for name in COLUMN_NAMES]
     stmt = (
         select(*columns)
         .where(and_(*conditions))
@@ -132,7 +143,7 @@ async def export_impugnaciones(
     _validate_date_range(fecha_desde, fecha_hasta)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
 
-    columns = [axis_impugnaciones.c[name] for name in COLUMN_NAMES]
+    columns = [_select_column(name) for name in COLUMN_NAMES]
     stmt = (
         select(*columns)
         .where(and_(*conditions))

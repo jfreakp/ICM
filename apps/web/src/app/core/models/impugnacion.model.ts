@@ -10,6 +10,7 @@ export interface ImpugnacionItem {
   articulo_original: string | null;
   monto_capital_original: number | null;
   observacion: string | null;
+  deleted_at: string | null;
 }
 
 export interface ImpugnacionListResponse {
