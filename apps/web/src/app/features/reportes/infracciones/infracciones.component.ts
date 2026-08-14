@@ -56,6 +56,7 @@ export const COLUMNAS: ColumnaInfraccion[] = [
   { clave: 'valor_recargo_exonerado', encabezado: 'Valor Recargo Exonerado' },
   { clave: 'valor_intereses', encabezado: 'Valor Intereses' },
   { clave: 'valor_total', encabezado: 'Valor Total' },
+  { clave: 'deleted_at', encabezado: 'Fecha de Eliminación' },
 ];
 
 @Component({

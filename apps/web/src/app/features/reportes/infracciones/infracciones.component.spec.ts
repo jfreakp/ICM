@@ -59,6 +59,7 @@ describe('InfraccionesComponent', () => {
     valor_recargo_exonerado: 0,
     valor_intereses: 1,
     valor_total: 56,
+    deleted_at: null,
   };
 
   const resultado: InfraccionListResponse = { items: [item], total: 1, page: 1, page_size: 50 };
@@ -137,7 +138,7 @@ describe('InfraccionesComponent', () => {
   });
 
   describe('async rendering under zoneless change detection', () => {
-    it('renders results once the deferred response arrives, with all 41 columns in the defined order', async () => {
+    it('renders results once the deferred response arrives, with all 42 columns in the defined order', async () => {
       const resultado$ = new Subject<InfraccionListResponse>();
       infraccionesService.listInfracciones.mockReturnValue(resultado$);
 
@@ -158,13 +159,13 @@ describe('InfraccionesComponent', () => {
       const headerCells: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('thead th');
       const headerTexts = Array.from(headerCells).map((th) => th.textContent?.trim());
       expect(headerTexts).toEqual(COLUMNAS.map((c) => c.encabezado));
-      expect(headerTexts.length).toBe(41);
+      expect(headerTexts.length).toBe(42);
 
       const cells: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll(
         'tbody tr:first-child td'
       );
       const cellTexts = Array.from(cells).map((td) => td.textContent?.trim());
-      expect(cellTexts.length).toBe(41);
+      expect(cellTexts.length).toBe(42);
       expect(cellTexts[0]).toBe('REG-001');
       expect(cellTexts[6]).toBe('COD-001');
       expect(cellTexts[40]).toBe('56');

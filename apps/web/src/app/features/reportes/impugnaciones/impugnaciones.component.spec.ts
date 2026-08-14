@@ -30,6 +30,7 @@ describe('ImpugnacionesComponent', () => {
         articulo_original: 'Art 1',
         monto_capital_original: 100,
         observacion: 'Obs 1',
+        deleted_at: null,
       },
     ],
     total: 1,
@@ -66,6 +67,7 @@ describe('ImpugnacionesComponent', () => {
     'Artículo Original',
     'Monto Capital Original',
     'Observación',
+    'Fecha de Eliminación',
   ];
 
   beforeEach(async () => {

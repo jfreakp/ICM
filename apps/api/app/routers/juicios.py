@@ -48,6 +48,8 @@ COLUMN_HEADERS: dict[str, str] = {
     "valor_multas": "Valor Multas",
     "valor_costas": "Valor Costas",
     "valor_total": "Valor Total",
+    "deleted_at": "Fecha de Eliminación",
+    "tipo_identificacion_catalogo_item_id": "ID de Catálogo (Tipo de Identificación)",
 }
 COLUMN_NAMES = list(COLUMN_HEADERS)
 

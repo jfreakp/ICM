@@ -148,8 +148,8 @@ async def test_list_returns_items_within_range(client, db_session):
     first = body["items"][0]
     assert first["nombre_completo"] == "Deudor de Prueba"
     assert first["valor_total"] == 80.48
-    assert "deleted_at" not in first
-    assert "tipo_identificacion_catalogo_item_id" not in first
+    assert first["deleted_at"] is None
+    assert first["tipo_identificacion_catalogo_item_id"] == 67
 
 
 @pytest.mark.asyncio
@@ -306,6 +306,8 @@ EXPECTED_HEADERS = [
     "Valor Multas",
     "Valor Costas",
     "Valor Total",
+    "Fecha de Eliminación",
+    "ID de Catálogo (Tipo de Identificación)",
 ]
 
 
@@ -334,11 +336,11 @@ async def test_export_csv_returns_all_matching_rows(client, db_session):
     reader = csv.reader(lines)
     parsed_rows = list(reader)
     assert parsed_rows[0] == EXPECTED_HEADERS
-    assert len(parsed_rows[0]) == 26
+    assert len(parsed_rows[0]) == 28
     assert len(lines) - 1 == 31
 
     data_row = parsed_rows[1]
-    assert len(data_row) == 26
+    assert len(data_row) == 28
     assert data_row[0].startswith("TEST-JUI-e-")
 
 
@@ -366,11 +368,11 @@ async def test_export_xlsx_returns_all_matching_rows(client, db_session):
 
     workbook = load_workbook(io.BytesIO(response.content))
     sheet = workbook.active
-    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 27)]
+    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 29)]
     assert header_row == EXPECTED_HEADERS
     assert sheet.max_row - 1 == 30
 
-    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 27)]
+    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 29)]
     assert data_row[0].startswith("TEST-JUI-x-")
 
 

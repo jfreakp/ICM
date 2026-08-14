@@ -112,8 +112,10 @@ async def test_list_returns_items_within_range(client, db_session):
     first = body["items"][0]
     assert first["recaudador"] == "BANCO DEL PACIFICO"
     assert first["monto_recaudado"] == 119.0
-    assert "deleted_at" not in first
-    assert "tipo_documento_catalogo_item_id" not in first
+    assert first["deleted_at"] is None
+    assert first["tipo_documento_catalogo_item_id"] is None
+    assert first["tipo_recaudador_catalogo_item_id"] is None
+    assert first["tipo_servicio_catalogo_item_id"] is None
 
 
 @pytest.mark.asyncio
@@ -278,6 +280,10 @@ EXPECTED_HEADERS = [
     "Monto Recaudado",
     "Monto Cuenta 1",
     "Monto Cuenta 2",
+    "Fecha de Eliminación",
+    "ID de Catálogo (Tipo de Documento)",
+    "ID de Catálogo (Tipo de Recaudador)",
+    "ID de Catálogo (Tipo de Servicio)",
 ]
 
 
@@ -305,11 +311,11 @@ async def test_export_csv_returns_all_matching_rows(client, db_session):
     reader = csv.reader(lines)
     parsed_rows = list(reader)
     assert parsed_rows[0] == EXPECTED_HEADERS
-    assert len(parsed_rows[0]) == 15
+    assert len(parsed_rows[0]) == 19
     assert len(lines) - 1 == 28
 
     data_row = parsed_rows[1]
-    assert len(data_row) == 15
+    assert len(data_row) == 19
     assert data_row[0].startswith("TEST-PAG-e-")
 
 
@@ -336,11 +342,11 @@ async def test_export_xlsx_returns_all_matching_rows(client, db_session):
 
     workbook = load_workbook(io.BytesIO(response.content))
     sheet = workbook.active
-    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 16)]
+    header_row = [sheet.cell(row=1, column=col).value for col in range(1, 20)]
     assert header_row == EXPECTED_HEADERS
     assert sheet.max_row - 1 == 29
 
-    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 16)]
+    data_row = [sheet.cell(row=2, column=col).value for col in range(1, 20)]
     assert data_row[0].startswith("TEST-PAG-x-")
 
 
@@ -378,3 +384,41 @@ async def test_export_without_token_returns_401(client, db_session):
         params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30", "formato": "csv"},
     )
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_list_truncates_datetime_columns_to_date_only(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_pagos(db_session, [_row("TEST-PAG-TRUNC-001", datetime(2031, 6, 5, 14, 35, 0))])
+
+    response = await client.get(
+        "/api/reportes/pagos",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    first = response.json()["items"][0]
+    assert first["fecha_operacion"] == "2031-06-05"
+    assert first["fecha_transaccion"] == "2031-06-05"
+
+
+@pytest.mark.asyncio
+async def test_export_truncates_datetime_columns_to_date_only(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_pagos(db_session, [_row("TEST-PAG-TRUNC-002", datetime(2031, 6, 6, 14, 35, 0))])
+
+    response = await client.get(
+        "/api/reportes/pagos/export",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30", "formato": "csv"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    text_content = response.content.decode("utf-8-sig")
+    lines = [line for line in text_content.splitlines() if line]
+    reader = csv.reader(lines)
+    parsed_rows = list(reader)
+    data_row = parsed_rows[-1]
+    assert data_row[10] == "2031-06-06"
+    assert data_row[11] == "2031-06-06"

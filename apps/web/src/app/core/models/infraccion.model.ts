@@ -41,6 +41,7 @@ export interface InfraccionItem {
   valor_recargo_exonerado: number | null;
   valor_intereses: number | null;
   valor_total: number | null;
+  deleted_at: string | null;
 }
 
 export interface InfraccionListResponse {
