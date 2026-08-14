@@ -32,5 +32,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            jfreakp/icm-loja:1.0.2
+            jfreakp/icm-loja:1.0.3
             jfreakp/icm-loja:latest

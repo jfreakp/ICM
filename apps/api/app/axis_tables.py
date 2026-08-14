@@ -16,6 +16,7 @@ axis_impugnaciones = Table(
     Column("articulo_original", Text),
     Column("monto_capital_original", Numeric(14, 2)),
     Column("observacion", Text),
+    Column("deleted_at", DateTime(timezone=True)),
 )
 
 axis_infracciones = Table(
@@ -63,6 +64,7 @@ axis_infracciones = Table(
     Column("valor_recargo_exonerado", Numeric(14, 2)),
     Column("valor_intereses", Numeric(14, 2)),
     Column("valor_total", Numeric(14, 2)),
+    Column("deleted_at", DateTime(timezone=True)),
 )
 
 axis_juicios = Table(
@@ -97,4 +99,32 @@ axis_juicios = Table(
     Column("valor_costas", Numeric(14, 2)),
     Column("valor_total", Numeric(14, 2)),
     Column("tipo_identificacion_catalogo_item_id", Integer),
+)
+
+axis_crv = Table(
+    "axis_crv",
+    axis_metadata,
+    Column("id", BigInteger, primary_key=True),
+    Column("deleted_at", DateTime(timezone=True)),
+)
+
+axis_modificacion_infracciones = Table(
+    "axis_modificacion_infracciones",
+    axis_metadata,
+    Column("id", BigInteger, primary_key=True),
+    Column("deleted_at", DateTime(timezone=True)),
+)
+
+axis_pagos = Table(
+    "axis_pagos",
+    axis_metadata,
+    Column("id", BigInteger, primary_key=True),
+    Column("deleted_at", DateTime(timezone=True)),
+)
+
+axis_titulos = Table(
+    "axis_titulos",
+    axis_metadata,
+    Column("id", BigInteger, primary_key=True),
+    Column("deleted_at", DateTime(timezone=True)),
 )

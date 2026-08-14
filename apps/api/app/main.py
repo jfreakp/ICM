@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from app.config import settings
 from app.routers.auditoria import router as auditoria_router
 from app.routers.auth import router as auth_router
+from app.routers.dashboard import router as dashboard_router
 from app.routers.infracciones import router as infracciones_router
 from app.routers.juicios import router as juicios_router
 from app.routers.reportes import router as reportes_router
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(dashboard_router)
 app.include_router(reportes_router)
 app.include_router(infracciones_router)
 app.include_router(juicios_router)

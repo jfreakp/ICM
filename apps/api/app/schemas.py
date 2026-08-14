@@ -187,3 +187,13 @@ class JuicioListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ResumenTablaItem(BaseModel):
+    tabla: str
+    etiqueta: str
+    total: int
+
+
+class DashboardResumenResponse(BaseModel):
+    tablas: list[ResumenTablaItem]
