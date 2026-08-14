@@ -4,7 +4,7 @@
     @if (currentUser$ | async; as user) {
       <p class="text-on-surface-variant font-body-lg text-body-lg">
         Bienvenido, <span class="font-semibold text-on-surface">{{ user.full_name }}</span>.
-        Métricas clave y actividad reciente del sistema.
+        Métricas clave del sistema.
       </p>
     }
   </div>
@@ -27,45 +27,5 @@
         </div>
       </div>
     }
-  </div>
-
-  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
-    <div class="p-md border-b border-outline-variant flex justify-between items-center">
-      <h3 class="font-headline-md text-headline-md text-on-surface">Actividad Reciente</h3>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-surface-container-low border-b border-outline-variant">
-            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Ciudadano</th>
-            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Fecha</th>
-            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Monto</th>
-            <th class="py-sm px-md font-label-caps text-label-caps text-on-surface-variant uppercase">Estado</th>
-          </tr>
-        </thead>
-        <tbody class="font-body-sm text-body-sm text-on-surface">
-          @for (item of actividadReciente; track item.ciudadano) {
-            <tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
-              <td class="py-sm px-md font-semibold">{{ item.ciudadano }}</td>
-              <td class="py-sm px-md text-on-surface-variant">{{ item.fecha }}</td>
-              <td class="py-sm px-md font-mono">{{ item.monto }}</td>
-              <td class="py-sm px-md">
-                @if (item.estado === 'Pagado') {
-                  <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-[#dcfce7] text-[#166534] font-label-caps text-label-caps">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#166534]"></span>
-                    Pagado
-                  </span>
-                } @else {
-                  <span class="inline-flex items-center gap-xs px-2 py-1 rounded-full bg-[#fef3c7] text-[#92400e] font-label-caps text-label-caps">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#92400e]"></span>
-                    Pendiente
-                  </span>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
   </div>
 </app-shell>
