@@ -10,6 +10,7 @@ from app.routers.auth import router as auth_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.infracciones import router as infracciones_router
 from app.routers.juicios import router as juicios_router
+from app.routers.pagos import router as pagos_router
 from app.routers.reportes import router as reportes_router
 
 app = FastAPI(title="Matriculación API")
@@ -27,6 +28,7 @@ app.include_router(dashboard_router)
 app.include_router(reportes_router)
 app.include_router(infracciones_router)
 app.include_router(juicios_router)
+app.include_router(pagos_router)
 app.include_router(auditoria_router)
 
 
