@@ -5,6 +5,7 @@ import { HomeComponent } from './features/home/home.component';
 import { CambiarContrasenaComponent } from './features/cambiar-contrasena/cambiar-contrasena.component';
 import { ImpugnacionesComponent } from './features/reportes/impugnaciones/impugnaciones.component';
 import { InfraccionesComponent } from './features/reportes/infracciones/infracciones.component';
+import { JuiciosComponent } from './features/reportes/juicios/juicios.component';
 import { AdministracionUsuariosComponent } from './features/administracion-usuarios/administracion-usuarios.component';
 import { AuditoriaComponent } from './features/auditoria/auditoria.component';
 
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: 'cambiar-contrasena', component: CambiarContrasenaComponent, canActivate: [authGuard] },
   { path: 'reportes/impugnaciones', component: ImpugnacionesComponent, canActivate: [authGuard] },
   { path: 'reportes/infracciones', component: InfraccionesComponent, canActivate: [authGuard] },
+  { path: 'reportes/juicios', component: JuiciosComponent, canActivate: [authGuard] },
   { path: 'usuarios', component: AdministracionUsuariosComponent, canActivate: [authGuard] },
   { path: 'auditoria', component: AuditoriaComponent, canActivate: [authGuard] },
   { path: '', redirectTo: 'home', pathMatch: 'full' },

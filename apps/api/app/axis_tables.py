@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Column, DateTime, MetaData, Numeric, Table, Text
+from sqlalchemy import BigInteger, Column, Date, DateTime, Integer, MetaData, Numeric, Table, Text, Time
 
 axis_metadata = MetaData(schema="axis")
 
@@ -63,4 +63,38 @@ axis_infracciones = Table(
     Column("valor_recargo_exonerado", Numeric(14, 2)),
     Column("valor_intereses", Numeric(14, 2)),
     Column("valor_total", Numeric(14, 2)),
+)
+
+axis_juicios = Table(
+    "axis_juicios",
+    axis_metadata,
+    Column("id", BigInteger, primary_key=True),
+    Column("registro", Text),
+    Column("hora_generacion", Time),
+    Column("codigo", Text),
+    Column("tipo_identificacion", Text),
+    Column("identificacion", Text),
+    Column("nombre_completo", Text),
+    Column("gestor_responsable", Text),
+    Column("gestor_secretario", Text),
+    Column("gestor_anulacion", Text),
+    Column("gestor_suspension", Text),
+    Column("gestor_reactivacion", Text),
+    Column("motivo_anulacion", Text),
+    Column("deleted_at", DateTime(timezone=True)),
+    Column("fecha_generacion", Date),
+    Column("fecha_registro", Date),
+    Column("fecha_inicio_juicio", Date),
+    Column("fecha_notificacion", Date),
+    Column("fecha_pago", Date),
+    Column("fecha_fin", Date),
+    Column("fecha_anulacion", Date),
+    Column("fecha_suspension", Date),
+    Column("fecha_reactivacion", Date),
+    Column("valor_capital", Numeric(14, 2)),
+    Column("valor_interes", Numeric(14, 2)),
+    Column("valor_multas", Numeric(14, 2)),
+    Column("valor_costas", Numeric(14, 2)),
+    Column("valor_total", Numeric(14, 2)),
+    Column("tipo_identificacion_catalogo_item_id", Integer),
 )

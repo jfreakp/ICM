@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, time
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -145,6 +145,45 @@ class InfraccionItem(BaseModel):
 
 class InfraccionListResponse(BaseModel):
     items: list[InfraccionItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class JuicioItem(BaseModel):
+    id: int
+    registro: str | None
+    hora_generacion: time | None
+    codigo: str | None
+    tipo_identificacion: str | None
+    identificacion: str | None
+    nombre_completo: str | None
+    gestor_responsable: str | None
+    gestor_secretario: str | None
+    gestor_anulacion: str | None
+    gestor_suspension: str | None
+    gestor_reactivacion: str | None
+    motivo_anulacion: str | None
+    fecha_generacion: date | None
+    fecha_registro: date | None
+    fecha_inicio_juicio: date | None
+    fecha_notificacion: date | None
+    fecha_pago: date | None
+    fecha_fin: date | None
+    fecha_anulacion: date | None
+    fecha_suspension: date | None
+    fecha_reactivacion: date | None
+    valor_capital: float | None
+    valor_interes: float | None
+    valor_multas: float | None
+    valor_costas: float | None
+    valor_total: float | None
+
+    model_config = {"from_attributes": True}
+
+
+class JuicioListResponse(BaseModel):
+    items: list[JuicioItem]
     total: int
     page: int
     page_size: int
