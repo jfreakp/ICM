@@ -52,10 +52,4 @@ describe('HomeComponent', () => {
     expect(text).toContain('Impugnaciones');
     expect(text).toContain('99,788');
   });
-
-  it('displays the recent activity table', () => {
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Actividad Reciente');
-    expect(text).toContain('Juan Pérez Morales');
-  });
 });

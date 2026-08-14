@@ -26,14 +26,6 @@ export class HomeComponent implements OnInit {
   private readonly errorSubject = new BehaviorSubject<string | null>(null);
   readonly error$ = this.errorSubject.asObservable();
 
-  readonly actividadReciente = [
-    { ciudadano: 'Juan Pérez Morales', fecha: '12 Oct 2023', monto: '$120.00', estado: 'Pagado' },
-    { ciudadano: 'María Elena Castro', fecha: '11 Oct 2023', monto: '$45.50', estado: 'Pendiente' },
-    { ciudadano: 'Carlos Rojas', fecha: '11 Oct 2023', monto: '$250.00', estado: 'Pendiente' },
-    { ciudadano: 'Ana Silva', fecha: '10 Oct 2023', monto: '$85.00', estado: 'Pagado' },
-    { ciudadano: 'Roberto Núñez', fecha: '09 Oct 2023', monto: '$300.00', estado: 'Pendiente' },
-  ];
-
   ngOnInit(): void {
     this.authService.loadCurrentUser().subscribe();
     this.dashboardService.getResumen().subscribe({
