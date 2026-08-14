@@ -9,18 +9,21 @@
     }
   </div>
 
+  @if (error$ | async; as error) {
+    <p class="text-error text-body-sm mb-md">{{ error }}</p>
+  }
+
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md mb-lg">
-    @for (kpi of kpis; track kpi.label) {
+    @for (tabla of (resumen$ | async); track tabla.tabla) {
       <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-lg transition-shadow duration-300">
         <div class="flex items-center justify-between mb-sm">
-          <span class="font-label-caps text-label-caps text-on-surface-variant uppercase bg-surface-container-low px-2 py-1 rounded-DEFAULT">{{ kpi.label }}</span>
+          <span class="font-label-caps text-label-caps text-on-surface-variant uppercase bg-surface-container-low px-2 py-1 rounded-DEFAULT">{{ tabla.etiqueta }}</span>
           <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
-            <span class="material-symbols-outlined text-on-primary-container text-[20px]">{{ kpi.icon }}</span>
+            <span class="material-symbols-outlined text-on-primary-container text-[20px]">table_rows</span>
           </div>
         </div>
         <div class="flex items-baseline gap-xs">
-          <span class="font-display-lg text-display-lg text-primary">{{ kpi.value }}</span>
-          <span class="text-on-surface-variant font-body-sm text-body-sm">{{ kpi.trend }}</span>
+          <span class="font-display-lg text-display-lg text-primary">{{ tabla.total | number }}</span>
         </div>
       </div>
     }
