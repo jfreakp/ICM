@@ -302,3 +302,45 @@ class PagoListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class TituloItem(BaseModel):
+    id: int
+    registro: str | None
+    hora_generacion: time | None
+    codigo_titulo_credito: str | None
+    tipo_identificacion: str | None
+    identificacion: str | None
+    nombre_completo: str | None
+    etapa_cobranza: str | None
+    estado: str | None
+    codigo_referencia: str | None
+    concepto: str | None
+    nombre_elabora_titulo: str | None
+    nombre_solicita: str | None
+    nombre_aprobacion: str | None
+    motivo_anulacion: str | None
+    fecha_generacion: date | None
+    fecha_registro: date | None
+    fecha_elaboracion: date | None
+    fecha_solicitud: date | None
+    fecha_aprobacion: date | None
+    fecha_notificacion: date | None
+    fecha_pago: date | None
+    fecha_anulacion: date | None
+    valor: float | None
+    multas: float | None
+    interes: float | None
+    valor_total: float | None
+    estado_catalogo_item_id: int | None
+    etapa_cobranza_catalogo_item_id: int | None
+    tipo_identificacion_catalogo_item_id: int | None
+
+    model_config = {"from_attributes": True}
+
+
+class TituloListResponse(BaseModel):
+    items: list[TituloItem]
+    total: int
+    page: int
+    page_size: int
