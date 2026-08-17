@@ -16,6 +16,7 @@ describe('ModificacionInfraccionesComponent', () => {
   let modificacionInfraccionesService: {
     listModificacionInfracciones: ReturnType<typeof vi.fn>;
     exportModificacionInfracciones: ReturnType<typeof vi.fn>;
+    getFechaMinima: ReturnType<typeof vi.fn>;
   };
 
   const item: ModificacionInfraccionItem = {
@@ -56,6 +57,7 @@ describe('ModificacionInfraccionesComponent', () => {
     modificacionInfraccionesService = {
       listModificacionInfracciones: vi.fn().mockReturnValue(of(resultado)),
       exportModificacionInfracciones: vi.fn().mockReturnValue(of(new Blob(['data']))),
+      getFechaMinima: vi.fn().mockReturnValue(of({ fecha_minima: null })),
     };
 
     await TestBed.configureTestingModule({
@@ -205,5 +207,21 @@ describe('ModificacionInfraccionesComponent', () => {
       expect(csvButton.disabled).toBe(true);
       expect(excelButton.disabled).toBe(true);
     });
+  });
+
+  it('shows the formatted minimum date under the title on init', () => {
+    modificacionInfraccionesService.getFechaMinima.mockReturnValue(of({ fecha_minima: '2020-01-05' }));
+
+    const fixtureConFecha = TestBed.createComponent(ModificacionInfraccionesComponent);
+    fixtureConFecha.detectChanges();
+
+    expect(modificacionInfraccionesService.getFechaMinima).toHaveBeenCalled();
+    const text = (fixtureConFecha.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Información disponible desde: 05/01/2020');
+  });
+
+  it('shows nothing when there is no minimum date', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).not.toContain('Información disponible desde');
   });
 });

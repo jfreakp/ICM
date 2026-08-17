@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
@@ -47,7 +47,7 @@ export const COLUMNAS: ColumnaCrv[] = [
   imports: [AsyncPipe, ReactiveFormsModule, AppShellComponent],
   templateUrl: './crv.component.html',
 })
-export class CrvComponent {
+export class CrvComponent implements OnInit {
   private readonly crvService = inject(CrvService);
   private readonly fb = inject(FormBuilder);
 
@@ -71,6 +71,24 @@ export class CrvComponent {
   readonly rangeError$ = this.rangeErrorSubject.asObservable();
 
   private filtrosVigentes: CrvFilters | null = null;
+
+  private readonly fechaMinimaSubject = new BehaviorSubject<string | null>(null);
+  readonly fechaMinima$ = this.fechaMinimaSubject.asObservable();
+
+  ngOnInit(): void {
+    this.crvService.getFechaMinima().subscribe({
+      next: (respuesta) => this.fechaMinimaSubject.next(this.formatearFecha(respuesta.fecha_minima)),
+      error: () => {},
+    });
+  }
+
+  private formatearFecha(fechaIso: string | null): string | null {
+    if (!fechaIso) {
+      return null;
+    }
+    const [anio, mes, dia] = fechaIso.split('-');
+    return `${dia}/${mes}/${anio}`;
+  }
 
   onFechaChange(): void {
     const { fechaDesde, fechaHasta } = this.form.getRawValue();

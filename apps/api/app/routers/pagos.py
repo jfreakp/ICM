@@ -15,7 +15,7 @@ from app.axis_tables import axis_pagos
 from app.database import get_db
 from app.models import User
 from app.routers.auth import get_client_ip, require_active_user
-from app.schemas import PagoItem, PagoListResponse
+from app.schemas import FechaMinimaResponse, PagoItem, PagoListResponse
 
 router = APIRouter(prefix="/api/reportes", tags=["reportes"])
 
@@ -67,6 +67,15 @@ def _select_column(name: str):
     if name in DATE_ONLY_COLUMNS:
         return cast(column, Date).label(name)
     return column
+
+
+@router.get("/pagos/fecha-minima", response_model=FechaMinimaResponse)
+async def get_fecha_minima_pagos(
+    db: AsyncSession = Depends(get_db), _user: User = Depends(require_active_user)
+) -> FechaMinimaResponse:
+    stmt = select(func.min(_select_column("fecha_transaccion"))).where(axis_pagos.c.deleted_at.is_(None))
+    fecha_minima = await db.scalar(stmt)
+    return FechaMinimaResponse(fecha_minima=fecha_minima)
 
 
 @router.get("/pagos", response_model=PagoListResponse)

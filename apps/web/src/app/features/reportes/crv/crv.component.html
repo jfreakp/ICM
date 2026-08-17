@@ -3,6 +3,10 @@
     <h2 class="font-display-lg text-display-lg text-on-surface">CRV</h2>
   </div>
 
+  @if (fechaMinima$ | async; as fechaMinima) {
+    <p class="text-on-surface-variant text-body-sm mb-md">Información disponible desde: {{ fechaMinima }}</p>
+  }
+
   <form [formGroup]="form" (ngSubmit)="buscar()" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md mb-lg flex flex-wrap items-end gap-md">
     <div>
       <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="fecha-desde">Fecha desde</label>

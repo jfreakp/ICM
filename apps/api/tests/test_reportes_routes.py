@@ -460,3 +460,45 @@ async def test_list_estados_blocked_when_must_change_password_is_true(client, db
 
     assert response.status_code == 403
     assert response.json()["detail"]["code"] == "password_change_required"
+
+
+async def _fecha_minima_actual(client, headers, path):
+    response = await client.get(path, headers=headers)
+    fecha_str = response.json()["fecha_minima"]
+    if fecha_str is None:
+        return datetime(1901, 1, 1)
+    return datetime.strptime(fecha_str, "%Y-%m-%d") - timedelta(days=1)
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_includes_seeded_row(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/impugnaciones/fecha-minima")
+    await _seed_impugnaciones(db_session, [_row("TEST-FMIN-001", fecha_anterior, estado="A")])
+
+    response = await client.get("/api/reportes/impugnaciones/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] == fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_ignores_soft_deleted_rows(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/impugnaciones/fecha-minima")
+    await _seed_impugnaciones(db_session, [_row("TEST-FMIN-101", fecha_anterior, estado="A")])
+    await db_session.execute(
+        text("UPDATE axis.axis_impugnaciones SET deleted_at = now() WHERE registro = 'TEST-FMIN-101'")
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/reportes/impugnaciones/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] != fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_without_token_returns_401(client, db_session):
+    response = await client.get("/api/reportes/impugnaciones/fecha-minima")
+    assert response.status_code == 401

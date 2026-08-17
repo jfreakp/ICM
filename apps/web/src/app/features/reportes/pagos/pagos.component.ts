@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
@@ -41,7 +41,7 @@ export const COLUMNAS: ColumnaPago[] = [
   imports: [AsyncPipe, ReactiveFormsModule, AppShellComponent],
   templateUrl: './pagos.component.html',
 })
-export class PagosComponent {
+export class PagosComponent implements OnInit {
   private readonly pagosService = inject(PagosService);
   private readonly fb = inject(FormBuilder);
 
@@ -65,6 +65,24 @@ export class PagosComponent {
   readonly rangeError$ = this.rangeErrorSubject.asObservable();
 
   private filtrosVigentes: PagoFilters | null = null;
+
+  private readonly fechaMinimaSubject = new BehaviorSubject<string | null>(null);
+  readonly fechaMinima$ = this.fechaMinimaSubject.asObservable();
+
+  ngOnInit(): void {
+    this.pagosService.getFechaMinima().subscribe({
+      next: (respuesta) => this.fechaMinimaSubject.next(this.formatearFecha(respuesta.fecha_minima)),
+      error: () => {},
+    });
+  }
+
+  private formatearFecha(fechaIso: string | null): string | null {
+    if (!fechaIso) {
+      return null;
+    }
+    const [anio, mes, dia] = fechaIso.split('-');
+    return `${dia}/${mes}/${anio}`;
+  }
 
   onFechaChange(): void {
     const { fechaDesde, fechaHasta } = this.form.getRawValue();

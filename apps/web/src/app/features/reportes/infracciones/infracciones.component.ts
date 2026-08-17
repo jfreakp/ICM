@@ -121,6 +121,9 @@ export class InfraccionesComponent implements OnInit {
   private readonly estadosSubject = new BehaviorSubject<string[]>([]);
   readonly estados$ = this.estadosSubject.asObservable();
 
+  private readonly fechaMinimaSubject = new BehaviorSubject<string | null>(null);
+  readonly fechaMinima$ = this.fechaMinimaSubject.asObservable();
+
   private readonly resultadoSubject = new BehaviorSubject<InfraccionListResponse | null>(null);
   readonly resultado$ = this.resultadoSubject.asObservable();
 
@@ -140,6 +143,18 @@ export class InfraccionesComponent implements OnInit {
       next: (estados) => this.estadosSubject.next(estados),
       error: () => this.errorSubject.next(LOAD_ERROR_MESSAGE),
     });
+    this.infraccionesService.getFechaMinima().subscribe({
+      next: (respuesta) => this.fechaMinimaSubject.next(this.formatearFecha(respuesta.fecha_minima)),
+      error: () => {},
+    });
+  }
+
+  private formatearFecha(fechaIso: string | null): string | null {
+    if (!fechaIso) {
+      return null;
+    }
+    const [anio, mes, dia] = fechaIso.split('-');
+    return `${dia}/${mes}/${anio}`;
   }
 
   onFechaChange(): void {

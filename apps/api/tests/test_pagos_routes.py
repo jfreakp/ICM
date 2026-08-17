@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 
 import pytest
 import pytest_asyncio
@@ -420,3 +420,45 @@ async def test_export_truncates_datetime_columns_to_date_only(client, db_session
     data_row = parsed_rows[-1]
     assert data_row[10] == "2031-06-06"
     assert data_row[11] == "2031-06-06"
+
+
+async def _fecha_minima_actual(client, headers, path):
+    response = await client.get(path, headers=headers)
+    fecha_str = response.json()["fecha_minima"]
+    if fecha_str is None:
+        return datetime(1901, 1, 1)
+    return datetime.strptime(fecha_str, "%Y-%m-%d") - timedelta(days=1)
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_includes_seeded_row(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/pagos/fecha-minima")
+    await _seed_pagos(db_session, [_row("TEST-PAG-FMIN-001", fecha_anterior)])
+
+    response = await client.get("/api/reportes/pagos/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] == fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_ignores_soft_deleted_rows(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/pagos/fecha-minima")
+    await _seed_pagos(db_session, [_row("TEST-PAG-FMIN-101", fecha_anterior)])
+    await db_session.execute(
+        text("UPDATE axis.axis_pagos SET deleted_at = now() WHERE registro = 'TEST-PAG-FMIN-101'")
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/reportes/pagos/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] != fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_without_token_returns_401(client, db_session):
+    response = await client.get("/api/reportes/pagos/fecha-minima")
+    assert response.status_code == 401

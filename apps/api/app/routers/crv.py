@@ -15,7 +15,7 @@ from app.axis_tables import axis_crv
 from app.database import get_db
 from app.models import User
 from app.routers.auth import get_client_ip, require_active_user
-from app.schemas import CrvItem, CrvListResponse
+from app.schemas import CrvItem, CrvListResponse, FechaMinimaResponse
 
 router = APIRouter(prefix="/api/reportes", tags=["reportes"])
 
@@ -72,6 +72,15 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date):
         cast(axis_crv.c.fecha_ingreso, Date).between(fecha_desde, fecha_hasta),
         axis_crv.c.deleted_at.is_(None),
     ]
+
+
+@router.get("/crv/fecha-minima", response_model=FechaMinimaResponse)
+async def get_fecha_minima_crv(
+    db: AsyncSession = Depends(get_db), _user: User = Depends(require_active_user)
+) -> FechaMinimaResponse:
+    stmt = select(func.min(_select_column("fecha_ingreso"))).where(axis_crv.c.deleted_at.is_(None))
+    fecha_minima = await db.scalar(stmt)
+    return FechaMinimaResponse(fecha_minima=fecha_minima)
 
 
 @router.get("/crv", response_model=CrvListResponse)

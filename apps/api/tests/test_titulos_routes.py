@@ -413,3 +413,49 @@ async def test_export_without_token_returns_401(client, db_session):
         params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30", "formato": "csv"},
     )
     assert response.status_code == 401
+
+
+async def _fecha_minima_actual(client, headers, path):
+    response = await client.get(path, headers=headers)
+    fecha_str = response.json()["fecha_minima"]
+    if fecha_str is None:
+        return date(1901, 1, 1)
+    return date.fromisoformat(fecha_str) - timedelta(days=1)
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_includes_seeded_row(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/titulos/fecha-minima")
+    await _seed_titulos(
+        db_session, [_row("TEST-TIT-FMIN-001", fecha_anterior, identificacion="TEST-TIT-CED-fmin1")]
+    )
+
+    response = await client.get("/api/reportes/titulos/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] == fecha_anterior.isoformat()
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_ignores_soft_deleted_rows(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/titulos/fecha-minima")
+    await _seed_titulos(
+        db_session, [_row("TEST-TIT-FMIN-101", fecha_anterior, identificacion="TEST-TIT-CED-fmin2")]
+    )
+    await db_session.execute(
+        text("UPDATE axis.axis_titulos SET deleted_at = now() WHERE registro = 'TEST-TIT-FMIN-101'")
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/reportes/titulos/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] != fecha_anterior.isoformat()
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_without_token_returns_401(client, db_session):
+    response = await client.get("/api/reportes/titulos/fecha-minima")
+    assert response.status_code == 401
