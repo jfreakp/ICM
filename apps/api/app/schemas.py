@@ -457,3 +457,7 @@ class LibretinListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class FechaMinimaResponse(BaseModel):
+    fecha_minima: date | None

@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 
 import pytest
 import pytest_asyncio
@@ -475,3 +475,49 @@ async def test_export_truncates_datetime_columns_to_date_only(client, db_session
     assert data_row[19] == "2031-06-06"
     assert data_row[20] == "2031-06-06"
     assert data_row[21] == "2031-06-08"
+
+
+async def _fecha_minima_actual(client, headers, path):
+    response = await client.get(path, headers=headers)
+    fecha_str = response.json()["fecha_minima"]
+    if fecha_str is None:
+        return datetime(1901, 1, 1)
+    return datetime.strptime(fecha_str, "%Y-%m-%d") - timedelta(days=1)
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_includes_seeded_row(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/crv/fecha-minima")
+    await _seed_crv(
+        db_session, [_row("TEST-CRV-FMIN-001", fecha_anterior, identificacion_agente="TEST-CRV-CED-fmin1")]
+    )
+
+    response = await client.get("/api/reportes/crv/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] == fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_ignores_soft_deleted_rows(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/crv/fecha-minima")
+    await _seed_crv(
+        db_session, [_row("TEST-CRV-FMIN-101", fecha_anterior, identificacion_agente="TEST-CRV-CED-fmin2")]
+    )
+    await db_session.execute(
+        text("UPDATE axis.axis_crv SET deleted_at = now() WHERE registro = 'TEST-CRV-FMIN-101'")
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/reportes/crv/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] != fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_without_token_returns_401(client, db_session):
+    response = await client.get("/api/reportes/crv/fecha-minima")
+    assert response.status_code == 401

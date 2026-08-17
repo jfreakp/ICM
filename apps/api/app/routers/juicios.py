@@ -15,7 +15,7 @@ from app.axis_tables import axis_juicios
 from app.database import get_db
 from app.models import User
 from app.routers.auth import get_client_ip, require_active_user
-from app.schemas import JuicioItem, JuicioListResponse
+from app.schemas import FechaMinimaResponse, JuicioItem, JuicioListResponse
 
 router = APIRouter(prefix="/api/reportes", tags=["reportes"])
 
@@ -66,6 +66,15 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date):
         axis_juicios.c.fecha_registro.between(fecha_desde, fecha_hasta),
         axis_juicios.c.deleted_at.is_(None),
     ]
+
+
+@router.get("/juicios/fecha-minima", response_model=FechaMinimaResponse)
+async def get_fecha_minima_juicios(
+    db: AsyncSession = Depends(get_db), _user: User = Depends(require_active_user)
+) -> FechaMinimaResponse:
+    stmt = select(func.min(axis_juicios.c.fecha_registro)).where(axis_juicios.c.deleted_at.is_(None))
+    fecha_minima = await db.scalar(stmt)
+    return FechaMinimaResponse(fecha_minima=fecha_minima)
 
 
 @router.get("/juicios", response_model=JuicioListResponse)

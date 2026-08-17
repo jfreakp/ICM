@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 
 import pytest
 import pytest_asyncio
@@ -519,3 +519,49 @@ async def test_export_truncates_datetime_columns_to_date_only(client, db_session
     assert data_row[33] == "2031-06-06"
     assert data_row[34] == "2031-06-07"
     assert data_row[35] == "2031-06-11"
+
+
+async def _fecha_minima_actual(client, headers, path):
+    response = await client.get(path, headers=headers)
+    fecha_str = response.json()["fecha_minima"]
+    if fecha_str is None:
+        return datetime(1901, 1, 1)
+    return datetime.strptime(fecha_str, "%Y-%m-%d") - timedelta(days=1)
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_includes_seeded_row(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/libretines/fecha-minima")
+    await _seed_libretines(
+        db_session, [_row("TEST-LIB-FMIN-001", fecha_anterior, identificacion_agente="TEST-LIB-CED-fmin1")]
+    )
+
+    response = await client.get("/api/reportes/libretines/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] == fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_ignores_soft_deleted_rows(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    fecha_anterior = await _fecha_minima_actual(client, headers, "/api/reportes/libretines/fecha-minima")
+    await _seed_libretines(
+        db_session, [_row("TEST-LIB-FMIN-101", fecha_anterior, identificacion_agente="TEST-LIB-CED-fmin2")]
+    )
+    await db_session.execute(
+        text("UPDATE axis.axis_libretines SET deleted_at = now() WHERE registro = 'TEST-LIB-FMIN-101'")
+    )
+    await db_session.commit()
+
+    response = await client.get("/api/reportes/libretines/fecha-minima", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["fecha_minima"] != fecha_anterior.strftime("%Y-%m-%d")
+
+
+@pytest.mark.asyncio
+async def test_fecha_minima_without_token_returns_401(client, db_session):
+    response = await client.get("/api/reportes/libretines/fecha-minima")
+    assert response.status_code == 401

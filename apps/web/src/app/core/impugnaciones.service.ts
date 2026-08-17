@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ImpugnacionFilters, ImpugnacionListResponse } from './models/impugnacion.model';
+import { FechaMinimaResponse } from './models/fecha-minima.model';
 import { environment } from '../../environments/environment';
 
 function buildFilterParams(filters: ImpugnacionFilters): HttpParams {
@@ -20,6 +21,10 @@ export class ImpugnacionesService {
 
   getEstados(): Observable<string[]> {
     return this.http.get<string[]>(`${environment.apiUrl}/reportes/impugnaciones/estados`);
+  }
+
+  getFechaMinima(): Observable<FechaMinimaResponse> {
+    return this.http.get<FechaMinimaResponse>(`${environment.apiUrl}/reportes/impugnaciones/fecha-minima`);
   }
 
   listImpugnaciones(filters: ImpugnacionFilters, page: number): Observable<ImpugnacionListResponse> {

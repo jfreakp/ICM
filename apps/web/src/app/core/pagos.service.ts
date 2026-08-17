@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PagoFilters, PagoListResponse } from './models/pago.model';
+import { FechaMinimaResponse } from './models/fecha-minima.model';
 import { environment } from '../../environments/environment';
 
 function buildFilterParams(filters: PagoFilters): HttpParams {
@@ -13,6 +14,10 @@ function buildFilterParams(filters: PagoFilters): HttpParams {
 @Injectable({ providedIn: 'root' })
 export class PagosService {
   private readonly http = inject(HttpClient);
+
+  getFechaMinima(): Observable<FechaMinimaResponse> {
+    return this.http.get<FechaMinimaResponse>(`${environment.apiUrl}/reportes/pagos/fecha-minima`);
+  }
 
   listPagos(filters: PagoFilters, page: number): Observable<PagoListResponse> {
     const params = buildFilterParams(filters).set('page', page.toString());

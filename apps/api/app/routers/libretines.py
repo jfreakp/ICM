@@ -15,7 +15,7 @@ from app.axis_tables import axis_libretines
 from app.database import get_db
 from app.models import User
 from app.routers.auth import get_client_ip, require_active_user
-from app.schemas import LibretinItem, LibretinListResponse
+from app.schemas import FechaMinimaResponse, LibretinItem, LibretinListResponse
 
 router = APIRouter(prefix="/api/reportes", tags=["reportes"])
 
@@ -88,6 +88,15 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date):
         cast(axis_libretines.c.fecha_registro, Date).between(fecha_desde, fecha_hasta),
         axis_libretines.c.deleted_at.is_(None),
     ]
+
+
+@router.get("/libretines/fecha-minima", response_model=FechaMinimaResponse)
+async def get_fecha_minima_libretines(
+    db: AsyncSession = Depends(get_db), _user: User = Depends(require_active_user)
+) -> FechaMinimaResponse:
+    stmt = select(func.min(_select_column("fecha_registro"))).where(axis_libretines.c.deleted_at.is_(None))
+    fecha_minima = await db.scalar(stmt)
+    return FechaMinimaResponse(fecha_minima=fecha_minima)
 
 
 @router.get("/libretines", response_model=LibretinListResponse)

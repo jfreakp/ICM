@@ -13,6 +13,7 @@ describe('JuiciosComponent', () => {
   let juiciosService: {
     listJuicios: ReturnType<typeof vi.fn>;
     exportJuicios: ReturnType<typeof vi.fn>;
+    getFechaMinima: ReturnType<typeof vi.fn>;
   };
 
   const item: JuicioItem = {
@@ -70,6 +71,7 @@ describe('JuiciosComponent', () => {
     juiciosService = {
       listJuicios: vi.fn().mockReturnValue(of(resultado)),
       exportJuicios: vi.fn().mockReturnValue(of(new Blob(['data']))),
+      getFechaMinima: vi.fn().mockReturnValue(of({ fecha_minima: null })),
     };
 
     await TestBed.configureTestingModule({
@@ -219,5 +221,21 @@ describe('JuiciosComponent', () => {
       expect(csvButton.disabled).toBe(true);
       expect(excelButton.disabled).toBe(true);
     });
+  });
+
+  it('shows the formatted minimum date under the title on init', () => {
+    juiciosService.getFechaMinima.mockReturnValue(of({ fecha_minima: '2020-01-05' }));
+
+    const fixtureConFecha = TestBed.createComponent(JuiciosComponent);
+    fixtureConFecha.detectChanges();
+
+    expect(juiciosService.getFechaMinima).toHaveBeenCalled();
+    const text = (fixtureConFecha.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Información disponible desde: 05/01/2020');
+  });
+
+  it('shows nothing when there is no minimum date', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).not.toContain('Información disponible desde');
   });
 });

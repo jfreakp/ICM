@@ -15,7 +15,7 @@ from app.axis_tables import axis_modificacion_infracciones
 from app.database import get_db
 from app.models import User
 from app.routers.auth import get_client_ip, require_active_user
-from app.schemas import ModificacionInfraccionItem, ModificacionInfraccionListResponse
+from app.schemas import FechaMinimaResponse, ModificacionInfraccionItem, ModificacionInfraccionListResponse
 
 router = APIRouter(prefix="/api/reportes", tags=["reportes"])
 
@@ -58,6 +58,17 @@ def _date_range_conditions(fecha_desde: date, fecha_hasta: date):
         cast(axis_modificacion_infracciones.c.fecha_registro, Date).between(fecha_desde, fecha_hasta),
         axis_modificacion_infracciones.c.deleted_at.is_(None),
     ]
+
+
+@router.get("/modificacion-infracciones/fecha-minima", response_model=FechaMinimaResponse)
+async def get_fecha_minima_modificacion_infracciones(
+    db: AsyncSession = Depends(get_db), _user: User = Depends(require_active_user)
+) -> FechaMinimaResponse:
+    stmt = select(func.min(_select_column("fecha_registro"))).where(
+        axis_modificacion_infracciones.c.deleted_at.is_(None)
+    )
+    fecha_minima = await db.scalar(stmt)
+    return FechaMinimaResponse(fecha_minima=fecha_minima)
 
 
 @router.get("/modificacion-infracciones", response_model=ModificacionInfraccionListResponse)
