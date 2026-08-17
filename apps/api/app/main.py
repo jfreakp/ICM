@@ -8,8 +8,11 @@ from app.config import settings
 from app.routers.auditoria import router as auditoria_router
 from app.routers.auth import router as auth_router
 from app.routers.dashboard import router as dashboard_router
+from app.routers.crv import router as crv_router
 from app.routers.infracciones import router as infracciones_router
 from app.routers.juicios import router as juicios_router
+from app.routers.libretines import router as libretines_router
+from app.routers.modificacion_infracciones import router as modificacion_infracciones_router
 from app.routers.pagos import router as pagos_router
 from app.routers.reportes import router as reportes_router
 from app.routers.titulos import router as titulos_router
@@ -31,6 +34,9 @@ app.include_router(infracciones_router)
 app.include_router(juicios_router)
 app.include_router(pagos_router)
 app.include_router(titulos_router)
+app.include_router(modificacion_infracciones_router)
+app.include_router(crv_router)
+app.include_router(libretines_router)
 app.include_router(auditoria_router)
 
 

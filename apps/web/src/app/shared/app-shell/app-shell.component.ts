@@ -3,7 +3,7 @@ import { AsyncPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 
-export type AppShellRoute = 'dashboard' | 'impugnaciones' | 'infracciones' | 'juicios' | 'pagos' | 'titulos' | 'usuarios' | 'auditoria';
+export type AppShellRoute = 'dashboard' | 'impugnaciones' | 'infracciones' | 'juicios' | 'pagos' | 'titulos' | 'modificacion-infracciones' | 'crv' | 'libretines' | 'usuarios' | 'auditoria';
 
 const ACTIVE_LINK_CLASS =
   'flex items-center gap-sm px-md py-sm text-secondary-fixed-dim border-l-4 border-secondary-fixed font-bold transition-colors duration-200';
@@ -33,7 +33,10 @@ export class AppShellComponent implements OnInit {
       this.activeRoute === 'infracciones' ||
       this.activeRoute === 'juicios' ||
       this.activeRoute === 'pagos' ||
-      this.activeRoute === 'titulos'
+      this.activeRoute === 'titulos' ||
+      this.activeRoute === 'modificacion-infracciones' ||
+      this.activeRoute === 'crv' ||
+      this.activeRoute === 'libretines'
     ) {
       this.reportesExpanded = true;
     }

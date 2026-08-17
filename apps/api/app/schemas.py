@@ -344,3 +344,116 @@ class TituloListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ModificacionInfraccionItem(BaseModel):
+    id: int
+    registro: str | None
+    hora_generacion: time | None
+    codigo_infraccion_original: str | None
+    contravencion: str | None
+    observacion: str | None
+    codigo_infraccion_acta: str | None
+    codigo_usuario_modifica: str | None
+    numero_credito: str | None
+    fecha_generacion: date | None
+    fecha_registro: date | None
+
+    model_config = {"from_attributes": True}
+
+
+class ModificacionInfraccionListResponse(BaseModel):
+    items: list[ModificacionInfraccionItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class CrvItem(BaseModel):
+    id: int
+    registro: str | None
+    hora_generacion: time | None
+    codigo_orden_crv: str | None
+    codigo_actividad: str | None
+    codigo_oficina: str | None
+    descripcion_oficina: str | None
+    placa: str | None
+    nombre_agente: str | None
+    identificacion_agente: str | None
+    motivo_ingreso_crv: str | None
+    clase: str | None
+    provincia: str | None
+    localidad_ciudad: str | None
+    ciudadela: str | None
+    area: str | None
+    direccion: str | None
+    remolque: str | None
+    km_remolque: str | None
+    valor_remolque: str | None
+    fecha_generacion: date | None
+    fecha_ingreso: date | None
+    fecha_salida: date | None
+    localidad_ciudad_catalogo_item_id: int | None
+    provincia_catalogo_item_id: int | None
+
+    model_config = {"from_attributes": True}
+
+
+class CrvListResponse(BaseModel):
+    items: list[CrvItem]
+    total: int
+    page: int
+    page_size: int
+
+
+class LibretinItem(BaseModel):
+    id: int
+    registro: str | None
+    hora_generacion: time | None
+    codigo_libretin: str | None
+    prefijo_boleta: str | None
+    rango_inicio_boleta: str | None
+    rango_fin_boleta: str | None
+    cantidad_boletas: str | None
+    longitud_boleta: str | None
+    estado: str | None
+    codigo_tramite: str | None
+    codigo_usuario_creacion: str | None
+    codigo_tramite_asignacion: str | None
+    codigo_usuario_asignacion: str | None
+    codigo_usuario_inactiva: str | None
+    observacion: str | None
+    codigo_agente: str | None
+    identificacion_agente: str | None
+    agente: str | None
+    codigo_distrito: str | None
+    descripcion_distrito: str | None
+    codigo_oficina: str | None
+    descripcion_oficina: str | None
+    codigo_provincia: str | None
+    descripcion_provincia: str | None
+    codigo_localidad: str | None
+    descripcion_localidad: str | None
+    tipo: str | None
+    origen_tramite: str | None
+    motivo_baja: str | None
+    disponibles: str | None
+    utilizadas: str | None
+    desactivadas: str | None
+    fecha_generacion: date | None
+    fecha_registro: date | None
+    fecha_asignacion: date | None
+    fecha_inactivacion: date | None
+    codigo_localidad_catalogo_item_id: int | None
+    codigo_provincia_catalogo_item_id: int | None
+    estado_catalogo_item_id: int | None
+    tipo_catalogo_item_id: int | None
+
+    model_config = {"from_attributes": True}
+
+
+class LibretinListResponse(BaseModel):
+    items: list[LibretinItem]
+    total: int
+    page: int
+    page_size: int
