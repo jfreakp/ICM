@@ -93,8 +93,8 @@ export interface InfraccionListResponse {
 }
 
 export interface InfraccionFilters {
-  fecha_desde: string;
-  fecha_hasta: string;
+  fecha_desde: string | null;
+  fecha_hasta: string | null;
   estado: string | null;
   contravencion: string | null;
 }

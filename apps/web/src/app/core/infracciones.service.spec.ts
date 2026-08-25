@@ -74,6 +74,21 @@ describe('InfraccionesService', () => {
     req.flush({ items: [], total: 0, page: 1, page_size: 50 });
   });
 
+  it('listInfracciones omits fecha_desde and fecha_hasta when searching by contravencion alone', () => {
+    service
+      .listInfracciones(
+        { fecha_desde: null, fecha_hasta: null, estado: null, contravencion: 'LEVE-B' },
+        1
+      )
+      .subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/infracciones`);
+    expect(req.request.params.has('fecha_desde')).toBe(false);
+    expect(req.request.params.has('fecha_hasta')).toBe(false);
+    expect(req.request.params.get('contravencion')).toBe('LEVE-B');
+    req.flush({ items: [], total: 0, page: 1, page_size: 50 });
+  });
+
   it('exportInfracciones requests a blob with the formato param', () => {
     let result: Blob | undefined;
     service
