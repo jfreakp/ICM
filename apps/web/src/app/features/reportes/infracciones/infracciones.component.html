@@ -6,6 +6,7 @@
   @if (fechaMinima$ | async; as fechaMinima) {
     <p class="text-on-surface-variant text-body-sm mb-md">Información disponible desde: {{ fechaMinima }}</p>
   }
+  <p class="text-on-surface-variant text-body-sm mb-md">Busca por rango de fechas, por código de Contravención, o ambos. Si usas fechas, completa ambas.</p>
 
   <form [formGroup]="form" (ngSubmit)="buscar()" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md mb-lg flex flex-wrap items-end gap-md">
     <div>

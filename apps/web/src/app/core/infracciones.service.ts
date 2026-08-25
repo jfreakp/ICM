@@ -6,9 +6,13 @@ import { FechaMinimaResponse } from './models/fecha-minima.model';
 import { environment } from '../../environments/environment';
 
 function buildFilterParams(filters: InfraccionFilters): HttpParams {
-  let params = new HttpParams()
-    .set('fecha_desde', filters.fecha_desde)
-    .set('fecha_hasta', filters.fecha_hasta);
+  let params = new HttpParams();
+  if (filters.fecha_desde) {
+    params = params.set('fecha_desde', filters.fecha_desde);
+  }
+  if (filters.fecha_hasta) {
+    params = params.set('fecha_hasta', filters.fecha_hasta);
+  }
   if (filters.estado) {
     params = params.set('estado', filters.estado);
   }

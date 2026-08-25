@@ -118,6 +118,13 @@ describe('InfraccionesComponent', () => {
     fixture.detectChanges();
   }
 
+  function fillContravencion(codigo: string): void {
+    const contravencionInput: HTMLInputElement = fixture.nativeElement.querySelector('#contravencion');
+    contravencionInput.value = codigo;
+    contravencionInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
   function submitForm(): void {
     const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
     form.dispatchEvent(new Event('submit'));
@@ -182,16 +189,41 @@ describe('InfraccionesComponent', () => {
 
   it('sends the contravencion code when the field is filled in', () => {
     fillForm('2024-06-01', '2024-06-30');
-
-    const contravencionInput: HTMLInputElement = fixture.nativeElement.querySelector('#contravencion');
-    contravencionInput.value = 'LEVE-B';
-    contravencionInput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+    fillContravencion('LEVE-B');
 
     submitForm();
 
     expect(infraccionesService.listInfracciones).toHaveBeenCalledWith(
       { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: 'LEVE-B' },
+      1
+    );
+  });
+
+  it('disables submit when no filter is filled in', () => {
+    const submitButton: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(submitButton.disabled).toBe(true);
+  });
+
+  it('disables submit when only one of the two dates is filled in, even with no contravencion', () => {
+    const desdeInput: HTMLInputElement = fixture.nativeElement.querySelector('#fecha-desde');
+    desdeInput.value = '2024-06-01';
+    desdeInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const submitButton: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(submitButton.disabled).toBe(true);
+  });
+
+  it('allows submit with only the contravencion code, without any dates', () => {
+    fillContravencion('LEVE-B');
+
+    const submitButton: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(submitButton.disabled).toBe(false);
+
+    submitForm();
+
+    expect(infraccionesService.listInfracciones).toHaveBeenCalledWith(
+      { fecha_desde: null, fecha_hasta: null, estado: null, contravencion: 'LEVE-B' },
       1
     );
   });

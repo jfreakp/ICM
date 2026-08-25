@@ -280,6 +280,51 @@ async def test_list_filters_by_contravencion(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_list_by_contravencion_only_without_dates(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_infracciones(
+        db_session,
+        [
+            _row("TEST-INF-CTR-001", datetime(2020, 1, 5), contravencion="UNICA-XYZ"),
+            _row("TEST-INF-CTR-002", datetime(2035, 1, 5), contravencion="OTRA-ABC"),
+        ],
+    )
+
+    response = await client.get(
+        "/api/reportes/infracciones",
+        params={"contravencion": "UNICA-XYZ"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["registro"] == "TEST-INF-CTR-001"
+
+
+@pytest.mark.asyncio
+async def test_list_requires_date_range_or_contravencion(client, db_session):
+    headers = await _auth_headers(client, db_session)
+
+    response = await client.get("/api/reportes/infracciones", headers=headers)
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_list_rejects_single_date_without_the_other(client, db_session):
+    headers = await _auth_headers(client, db_session)
+
+    response = await client.get(
+        "/api/reportes/infracciones",
+        params={"fecha_desde": "2031-06-01"},
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
 async def test_list_pagination_page_two_offset(client, db_session):
     headers = await _auth_headers(client, db_session)
     base = datetime(2031, 5, 1)
@@ -482,6 +527,23 @@ async def test_export_xlsx_returns_all_matching_rows(client, db_session):
     data_row = [sheet.cell(row=2, column=col).value for col in range(1, 84)]
     assert data_row[5] == "EMITIDA"
     assert data_row[0].startswith("TEST-INF-x-")
+
+
+@pytest.mark.asyncio
+async def test_export_by_contravencion_only_without_dates(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_infracciones(
+        db_session, [_row("TEST-INF-CTR-EXP-001", datetime(2020, 1, 5), contravencion="UNICA-EXP")]
+    )
+
+    response = await client.get(
+        "/api/reportes/infracciones/export",
+        params={"contravencion": "UNICA-EXP", "formato": "csv"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert "infracciones_UNICA-EXP.csv" in response.headers["content-disposition"]
 
 
 @pytest.mark.asyncio

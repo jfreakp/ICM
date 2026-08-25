@@ -117,10 +117,29 @@ def _validate_date_range(fecha_desde: date, fecha_hasta: date) -> None:
         )
 
 
+def _validate_filters(
+    fecha_desde: date | None, fecha_hasta: date | None, contravencion: str | None
+) -> None:
+    if (fecha_desde is None) != (fecha_hasta is None):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Debe indicar fecha_desde y fecha_hasta juntas",
+        )
+    if fecha_desde is not None and fecha_hasta is not None:
+        _validate_date_range(fecha_desde, fecha_hasta)
+    elif not contravencion:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Debe indicar un rango de fechas o un código de contravención",
+        )
+
+
 def _date_range_conditions(
-    fecha_desde: date, fecha_hasta: date, estado: str | None, contravencion: str | None
+    fecha_desde: date | None, fecha_hasta: date | None, estado: str | None, contravencion: str | None
 ):
-    conditions = [cast(axis_infracciones.c.fecha_registro, Date).between(fecha_desde, fecha_hasta)]
+    conditions = []
+    if fecha_desde is not None and fecha_hasta is not None:
+        conditions.append(cast(axis_infracciones.c.fecha_registro, Date).between(fecha_desde, fecha_hasta))
     if estado is not None:
         conditions.append(axis_infracciones.c.estado == estado)
     if contravencion is not None:
@@ -175,15 +194,15 @@ async def get_fecha_minima_infracciones(
 @router.get("/infracciones", response_model=InfraccionListResponse)
 async def list_infracciones(
     request: Request,
-    fecha_desde: date,
-    fecha_hasta: date,
+    fecha_desde: date | None = None,
+    fecha_hasta: date | None = None,
     estado: str | None = None,
     contravencion: str | None = None,
     page: int = Query(default=1, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_active_user),
 ) -> InfraccionListResponse:
-    _validate_date_range(fecha_desde, fecha_hasta)
+    _validate_filters(fecha_desde, fecha_hasta, contravencion)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado, contravencion)
 
     total = await db.scalar(
@@ -208,8 +227,8 @@ async def list_infracciones(
         action="reportes.infracciones.search",
         ip_address=get_client_ip(request),
         details={
-            "fecha_desde": fecha_desde.isoformat(),
-            "fecha_hasta": fecha_hasta.isoformat(),
+            "fecha_desde": fecha_desde.isoformat() if fecha_desde else None,
+            "fecha_hasta": fecha_hasta.isoformat() if fecha_hasta else None,
             "estado": estado,
             "contravencion": contravencion,
             "page": page,
@@ -232,15 +251,15 @@ def _export_value(value):
 @router.get("/infracciones/export")
 async def export_infracciones(
     request: Request,
-    fecha_desde: date,
-    fecha_hasta: date,
     formato: Literal["csv", "xlsx"],
+    fecha_desde: date | None = None,
+    fecha_hasta: date | None = None,
     estado: str | None = None,
     contravencion: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_active_user),
 ) -> Response:
-    _validate_date_range(fecha_desde, fecha_hasta)
+    _validate_filters(fecha_desde, fecha_hasta, contravencion)
     conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado, contravencion)
 
     columns = [_select_column(name) for name in COLUMN_NAMES]
@@ -250,7 +269,10 @@ async def export_infracciones(
         .order_by(axis_infracciones.c.fecha_registro.desc(), axis_infracciones.c.id.desc())
     )
     rows = (await db.execute(stmt)).mappings().all()
-    filename = f"infracciones_{fecha_desde.isoformat()}_{fecha_hasta.isoformat()}.{formato}"
+    if fecha_desde and fecha_hasta:
+        filename = f"infracciones_{fecha_desde.isoformat()}_{fecha_hasta.isoformat()}.{formato}"
+    else:
+        filename = f"infracciones_{contravencion}.{formato}"
 
     await registrar_evento(
         db,
@@ -259,8 +281,8 @@ async def export_infracciones(
         action="reportes.infracciones.export",
         ip_address=get_client_ip(request),
         details={
-            "fecha_desde": fecha_desde.isoformat(),
-            "fecha_hasta": fecha_hasta.isoformat(),
+            "fecha_desde": fecha_desde.isoformat() if fecha_desde else None,
+            "fecha_hasta": fecha_hasta.isoformat() if fecha_hasta else None,
             "estado": estado,
             "contravencion": contravencion,
             "formato": formato,

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { AppShellComponent } from '../../../shared/app-shell/app-shell.component';
 import { InfraccionesService } from '../../../core/infracciones.service';
@@ -8,6 +8,21 @@ import { InfraccionFilters, InfraccionItem, InfraccionListResponse } from '../..
 
 const ORDER_ERROR_MESSAGE = 'La fecha desde no puede ser posterior a la fecha hasta.';
 const LOAD_ERROR_MESSAGE = 'No se pudieron cargar las infracciones. Intenta de nuevo.';
+
+const requiereRangoOContravencion: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const { fechaDesde, fechaHasta, contravencion } = control.value as {
+    fechaDesde: string;
+    fechaHasta: string;
+    contravencion: string;
+  };
+  if (!!fechaDesde !== !!fechaHasta) {
+    return { fechaIncompleta: true };
+  }
+  if (!fechaDesde && !contravencion) {
+    return { filtroRequerido: true };
+  }
+  return null;
+};
 
 export interface ColumnaInfraccion {
   clave: keyof InfraccionItem;
@@ -112,12 +127,15 @@ export class InfraccionesComponent implements OnInit {
 
   readonly columnas = COLUMNAS;
 
-  readonly form = this.fb.nonNullable.group({
-    fechaDesde: ['', Validators.required],
-    fechaHasta: ['', Validators.required],
-    estado: [''],
-    contravencion: [''],
-  });
+  readonly form = this.fb.nonNullable.group(
+    {
+      fechaDesde: [''],
+      fechaHasta: [''],
+      estado: [''],
+      contravencion: [''],
+    },
+    { validators: requiereRangoOContravencion }
+  );
 
   private readonly estadosSubject = new BehaviorSubject<string[]>([]);
   readonly estados$ = this.estadosSubject.asObservable();
@@ -183,12 +201,12 @@ export class InfraccionesComponent implements OnInit {
       return;
     }
     const { fechaDesde, fechaHasta, estado, contravencion } = this.form.getRawValue();
-    if (!this.rangoValido(fechaDesde, fechaHasta)) {
+    if (fechaDesde && fechaHasta && !this.rangoValido(fechaDesde, fechaHasta)) {
       return;
     }
     this.filtrosVigentes = {
-      fecha_desde: fechaDesde,
-      fecha_hasta: fechaHasta,
+      fecha_desde: fechaDesde || null,
+      fecha_hasta: fechaHasta || null,
       estado: estado || null,
       contravencion: contravencion || null,
     };
@@ -211,7 +229,10 @@ export class InfraccionesComponent implements OnInit {
   }
 
   private disparaDescarga(blob: Blob, filtros: InfraccionFilters, formato: 'csv' | 'xlsx'): void {
-    const filename = `infracciones_${filtros.fecha_desde}_${filtros.fecha_hasta}.${formato}`;
+    const filename =
+      filtros.fecha_desde && filtros.fecha_hasta
+        ? `infracciones_${filtros.fecha_desde}_${filtros.fecha_hasta}.${formato}`
+        : `infracciones_${filtros.contravencion}.${formato}`;
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
