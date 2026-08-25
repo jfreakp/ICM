@@ -116,6 +116,7 @@ export class InfraccionesComponent implements OnInit {
     fechaDesde: ['', Validators.required],
     fechaHasta: ['', Validators.required],
     estado: [''],
+    contravencion: [''],
   });
 
   private readonly estadosSubject = new BehaviorSubject<string[]>([]);
@@ -181,11 +182,16 @@ export class InfraccionesComponent implements OnInit {
     if (this.form.invalid) {
       return;
     }
-    const { fechaDesde, fechaHasta, estado } = this.form.getRawValue();
+    const { fechaDesde, fechaHasta, estado, contravencion } = this.form.getRawValue();
     if (!this.rangoValido(fechaDesde, fechaHasta)) {
       return;
     }
-    this.filtrosVigentes = { fecha_desde: fechaDesde, fecha_hasta: fechaHasta, estado: estado || null };
+    this.filtrosVigentes = {
+      fecha_desde: fechaDesde,
+      fecha_hasta: fechaHasta,
+      estado: estado || null,
+      contravencion: contravencion || null,
+    };
     this.cargarPagina(1);
   }
 
