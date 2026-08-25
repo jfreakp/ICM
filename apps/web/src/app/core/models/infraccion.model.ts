@@ -96,4 +96,5 @@ export interface InfraccionFilters {
   fecha_desde: string;
   fecha_hasta: string;
   estado: string | null;
+  contravencion: string | null;
 }

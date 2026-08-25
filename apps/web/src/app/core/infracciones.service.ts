@@ -12,6 +12,9 @@ function buildFilterParams(filters: InfraccionFilters): HttpParams {
   if (filters.estado) {
     params = params.set('estado', filters.estado);
   }
+  if (filters.contravencion) {
+    params = params.set('contravencion', filters.contravencion);
+  }
   return params;
 }
 

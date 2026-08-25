@@ -453,6 +453,7 @@ async def test_infracciones_search_creates_audit_event_with_filters_and_total(cl
         "fecha_desde": "2031-06-01",
         "fecha_hasta": "2031-06-30",
         "estado": "EMITIDA",
+        "contravencion": None,
         "page": 1,
         "total": 2,
     }

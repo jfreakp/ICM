@@ -117,10 +117,14 @@ def _validate_date_range(fecha_desde: date, fecha_hasta: date) -> None:
         )
 
 
-def _date_range_conditions(fecha_desde: date, fecha_hasta: date, estado: str | None):
+def _date_range_conditions(
+    fecha_desde: date, fecha_hasta: date, estado: str | None, contravencion: str | None
+):
     conditions = [cast(axis_infracciones.c.fecha_registro, Date).between(fecha_desde, fecha_hasta)]
     if estado is not None:
         conditions.append(axis_infracciones.c.estado == estado)
+    if contravencion is not None:
+        conditions.append(axis_infracciones.c.contravencion == contravencion)
     return conditions
 
 
@@ -174,12 +178,13 @@ async def list_infracciones(
     fecha_desde: date,
     fecha_hasta: date,
     estado: str | None = None,
+    contravencion: str | None = None,
     page: int = Query(default=1, ge=1),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_active_user),
 ) -> InfraccionListResponse:
     _validate_date_range(fecha_desde, fecha_hasta)
-    conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
+    conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado, contravencion)
 
     total = await db.scalar(
         select(func.count()).select_from(axis_infracciones).where(and_(*conditions))
@@ -206,6 +211,7 @@ async def list_infracciones(
             "fecha_desde": fecha_desde.isoformat(),
             "fecha_hasta": fecha_hasta.isoformat(),
             "estado": estado,
+            "contravencion": contravencion,
             "page": page,
             "total": total or 0,
         },
@@ -230,11 +236,12 @@ async def export_infracciones(
     fecha_hasta: date,
     formato: Literal["csv", "xlsx"],
     estado: str | None = None,
+    contravencion: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_active_user),
 ) -> Response:
     _validate_date_range(fecha_desde, fecha_hasta)
-    conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado)
+    conditions = _date_range_conditions(fecha_desde, fecha_hasta, estado, contravencion)
 
     columns = [_select_column(name) for name in COLUMN_NAMES]
     stmt = (
@@ -255,6 +262,7 @@ async def export_infracciones(
             "fecha_desde": fecha_desde.isoformat(),
             "fecha_hasta": fecha_hasta.isoformat(),
             "estado": estado,
+            "contravencion": contravencion,
             "formato": formato,
             "filas_exportadas": len(rows),
         },

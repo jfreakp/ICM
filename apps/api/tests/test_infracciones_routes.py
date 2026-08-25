@@ -257,6 +257,29 @@ async def test_list_filters_by_estado(client, db_session):
 
 
 @pytest.mark.asyncio
+async def test_list_filters_by_contravencion(client, db_session):
+    headers = await _auth_headers(client, db_session)
+    await _seed_infracciones(
+        db_session,
+        [
+            _row("TEST-INF-211", datetime(2031, 6, 5), contravencion="GRAVE-A"),
+            _row("TEST-INF-212", datetime(2031, 6, 6), contravencion="LEVE-B"),
+        ],
+    )
+
+    response = await client.get(
+        "/api/reportes/infracciones",
+        params={"fecha_desde": "2031-06-01", "fecha_hasta": "2031-06-30", "contravencion": "LEVE-B"},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["total"] == 1
+    assert body["items"][0]["registro"] == "TEST-INF-212"
+
+
+@pytest.mark.asyncio
 async def test_list_pagination_page_two_offset(client, db_session):
     headers = await _auth_headers(client, db_session)
     base = datetime(2031, 5, 1)

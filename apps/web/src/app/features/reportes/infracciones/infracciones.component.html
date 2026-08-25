@@ -25,6 +25,10 @@
         }
       </select>
     </div>
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1" for="contravencion">Contravención</label>
+      <input id="contravencion" type="text" formControlName="contravencion" placeholder="Código de contravención" class="border border-outline-variant rounded-DEFAULT px-3 py-2 font-body-sm text-body-sm" />
+    </div>
     <button type="submit" [disabled]="form.invalid || !!(rangeError$ | async)" class="bg-primary hover:bg-primary-container text-on-primary px-sm py-2 rounded-DEFAULT font-body-sm text-body-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
       Filtrar
     </button>

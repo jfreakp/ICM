@@ -154,7 +154,7 @@ describe('InfraccionesComponent', () => {
     submitForm();
 
     expect(infraccionesService.listInfracciones).toHaveBeenCalledWith(
-      { fecha_desde: '2024-03-15', fecha_hasta: '2024-04-05', estado: null },
+      { fecha_desde: '2024-03-15', fecha_hasta: '2024-04-05', estado: null, contravencion: null },
       1
     );
   });
@@ -175,7 +175,23 @@ describe('InfraccionesComponent', () => {
     submitForm();
 
     expect(infraccionesService.listInfracciones).toHaveBeenCalledWith(
-      { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null },
+      { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: null },
+      1
+    );
+  });
+
+  it('sends the contravencion code when the field is filled in', () => {
+    fillForm('2024-06-01', '2024-06-30');
+
+    const contravencionInput: HTMLInputElement = fixture.nativeElement.querySelector('#contravencion');
+    contravencionInput.value = 'LEVE-B';
+    contravencionInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    submitForm();
+
+    expect(infraccionesService.listInfracciones).toHaveBeenCalledWith(
+      { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: 'LEVE-B' },
       1
     );
   });
@@ -261,7 +277,7 @@ describe('InfraccionesComponent', () => {
     siguienteButton.click();
 
     expect(infraccionesService.listInfracciones).toHaveBeenLastCalledWith(
-      { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null },
+      { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: null },
       2
     );
   });
@@ -280,7 +296,7 @@ describe('InfraccionesComponent', () => {
       csvButton.click();
 
       expect(infraccionesService.exportInfracciones).toHaveBeenCalledWith(
-        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null },
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: null },
         'csv'
       );
     });
@@ -293,7 +309,7 @@ describe('InfraccionesComponent', () => {
       excelButton.click();
 
       expect(infraccionesService.exportInfracciones).toHaveBeenCalledWith(
-        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null },
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: null },
         'xlsx'
       );
     });

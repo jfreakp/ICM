@@ -33,7 +33,10 @@ describe('InfraccionesService', () => {
   it('listInfracciones sends fecha_desde, fecha_hasta, page and omits estado when not set', () => {
     const response: InfraccionListResponse = { items: [], total: 0, page: 1, page_size: 50 };
     service
-      .listInfracciones({ fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null }, 1)
+      .listInfracciones(
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: null },
+        1
+      )
       .subscribe();
 
     const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/infracciones`);
@@ -46,7 +49,10 @@ describe('InfraccionesService', () => {
 
   it('listInfracciones includes estado when set', () => {
     service
-      .listInfracciones({ fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: 'PAGADA' }, 2)
+      .listInfracciones(
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: 'PAGADA', contravencion: null },
+        2
+      )
       .subscribe();
 
     const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/infracciones`);
@@ -55,10 +61,26 @@ describe('InfraccionesService', () => {
     req.flush({ items: [], total: 0, page: 2, page_size: 50 });
   });
 
+  it('listInfracciones includes contravencion when set and omits it when not set', () => {
+    service
+      .listInfracciones(
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: 'LEVE-B' },
+        1
+      )
+      .subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/infracciones`);
+    expect(req.request.params.get('contravencion')).toBe('LEVE-B');
+    req.flush({ items: [], total: 0, page: 1, page_size: 50 });
+  });
+
   it('exportInfracciones requests a blob with the formato param', () => {
     let result: Blob | undefined;
     service
-      .exportInfracciones({ fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null }, 'xlsx')
+      .exportInfracciones(
+        { fecha_desde: '2024-06-01', fecha_hasta: '2024-06-30', estado: null, contravencion: null },
+        'xlsx'
+      )
       .subscribe((blob) => (result = blob));
 
     const req = httpMock.expectOne(
